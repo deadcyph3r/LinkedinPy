@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 
 run_linkedinpy_only_once_for_mac_headed.sh
+*.pickle
 
 docker_quickstart.py
 

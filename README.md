@@ -16,6 +16,7 @@ pip install -r requirements.txt
 
 ##  APIs:
   - [search and connect](#search-and-connect)
+  - [connect from suggested](#connect-from-suggested)
   - [search and endorse](#search-and-endorse)
   - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
   - [withdraw old invitations](#withdraw-old-invitations)
@@ -23,7 +24,7 @@ pip install -r requirements.txt
 ### search and connect
  
 It sends invite to your 2nd or 3rd degree connections fetched from linkedin search
- 
+
 ```python
  session = LinkedinPy()
 
@@ -35,6 +36,16 @@ It sends invite to your 2nd or 3rd degree connections fetched from linkedin sear
                     school_code="%5B%2213497%22%5D"
                 )
  ```
+
+### connect from suggested
+
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+     session.connect_from_suggested(titile_must_contain="founder")
+```
+
 ### search and endorse
 
 It simply endorses your first connections fetched from linkedin search

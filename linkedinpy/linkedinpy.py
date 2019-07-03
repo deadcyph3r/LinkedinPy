@@ -8,6 +8,7 @@ from platform import python_version
 import os
 import json
 import sqlite3
+from itertools import repeat
 
 import pprint as pp
 
@@ -359,6 +360,41 @@ class LinkedinPy:
             return True
         return False
 
+    def connect_from_suggested(self, titile_must_contain):
+        network_url = "https://www.linkedin.com/mynetwork/"
+        web_address_navigator(Settings,self.browser, network_url)
+
+        for i in repeat(None, 10):
+            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            sleep(1)
+            cards = self.browser.find_elements_by_css_selector('div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
+            if len(cards)>9:
+                self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                break
+
+        cards = self.browser.find_elements_by_css_selector('div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
+        self.logger.info("Collected cards count: {}".format(len(cards)))
+
+        for card in cards:
+            try:
+                links = card.find_elements_by_css_selector('div.discover-person-card__info-container > a')
+                link = links[1]
+                self.logger.info(link.get_attribute('href'))
+                name = card.find_element_by_xpath("//div[1]/a[2]/span[2]")
+                self.logger.info(name.text)
+                occupation = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__occupation')
+                self.logger.info(occupation.text)
+                connect_button = card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button")
+                self.logger.info(connect_button.text)
+                if connect_button.text=='Connect' and titile_must_contain.lower() in occupation.text.lower():
+                    self.logger.info("Connect button found, connecting...")
+                    self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button"))
+                    self.logger.info("Clicked {}".format(connect_button.text))
+                    sleep(1)
+            except Exception as e:
+                self.logger.error(e)
+            self.logger.info("====")
+
     def search_and_connect(self,
               query,
               connection_relationship_code,
@@ -392,7 +428,7 @@ class LinkedinPy:
 
 
         temp_search_url = search_url + "&page=1"
-        if self.test_page(temp_search_url=temp_search_url, page_no=1)==False:
+        if self.test_page(search_url=temp_search_url, page_no=1)==False:
             self.logger.info("============Definitely no Result, Next Query==============")
             return 0
 
@@ -402,7 +438,7 @@ class LinkedinPy:
             while True and trial < 5 and st > 1:
                 st = random.randint(1, st-1)
                 temp_search_url = search_url + "&page=" + str(st)
-                if self.test_page(temp_search_url):
+                if self.test_page(search_url=temp_search_url, page_no=st):
                     break
                 trial = trial + 1
         else:
@@ -419,7 +455,7 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-	                web_address_navigator(Settings,self.browser, temp_search_url)
+                    web_address_navigator(Settings,self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
@@ -600,7 +636,7 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-	                web_address_navigator(Settings,self.browser, temp_search_url)
+                    web_address_navigator(Settings,self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
