@@ -96,7 +96,7 @@ It's an API to withdraw invitation a month or more older
 ## How to schedule as a job:
 
 ```bash
-    */10 * * * * bash /path/to/LinkedinPy/run_githubpy_only_once_for_mac.sh /path/to/LinkedinPy/quickstart.py $USERNAME $PASSWORD
+    */10 * * * * bash /path/to/LinkedinPy/run_linkedinpy_only_once_for_mac.sh /path/to/LinkedinPy/quickstart.py $USERNAME $PASSWORD
 ```
 
 

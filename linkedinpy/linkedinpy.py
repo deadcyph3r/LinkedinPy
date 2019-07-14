@@ -154,7 +154,7 @@ class LinkedinPy:
             file_handler.setLevel(logging.DEBUG)
             extra = {"username": self.username}
             logger_formatter = logging.Formatter(
-                '%(levelname)s [%(asctime)s] [%(username)s]  %(message)s',
+                '%(levelname)s [%(asctime)s] [LinkedinPy:%(username)s]  %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S')
             file_handler.setFormatter(logger_formatter)
             logger.addHandler(file_handler)
@@ -268,8 +268,8 @@ class LinkedinPy:
                             self.logger.info("check_button clicked")
                             checked_in_page = checked_in_page + 1
                             delay_random = random.randint(
-                                        ceil(sleep_delay * 0.42),
-                                        ceil(sleep_delay * 0.57))
+                                        ceil(sleep_delay * 0.21),
+                                        ceil(sleep_delay * 0.29))
                             sleep(delay_random)
                     except Exception as e:
                         self.logger.error(e)
@@ -363,6 +363,7 @@ class LinkedinPy:
     def connect_from_suggested(self, titile_must_contain):
         network_url = "https://www.linkedin.com/mynetwork/"
         web_address_navigator(Settings,self.browser, network_url)
+        self.logger.info("Looking for: {}".format(titile_must_contain))
 
         for i in repeat(None, 10):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -381,15 +382,15 @@ class LinkedinPy:
                 link = links[1]
                 self.logger.info(link.get_attribute('href'))
                 name = card.find_element_by_xpath("//div[1]/a[2]/span[2]")
-                self.logger.info(name.text)
+                self.logger.info("Name: {}".format(name.text))
                 occupation = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__occupation')
-                self.logger.info(occupation.text)
+                self.logger.info("Occupation: {}".format(occupation.text))
                 connect_button = card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button")
-                self.logger.info(connect_button.text)
+                self.logger.info("Button: {}".format(connect_button.text))
                 if connect_button.text=='Connect' and titile_must_contain.lower() in occupation.text.lower():
                     self.logger.info("Connect button found, connecting...")
                     self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button"))
-                    self.logger.info("Clicked {}".format(connect_button.text))
+                    self.logger.info("----> Clicked {}".format(connect_button.text))
                     sleep(1)
             except Exception as e:
                 self.logger.error(e)
