@@ -343,7 +343,7 @@ class LinkedinPy:
                         user_name = profile_link.split('/')[4]
                         self.logger.info("user_name : {}".format(user_name))
                         msg_button = res_item.find_element_by_xpath("//div[3]/div/div/button[text()='Message']")
-                        print(msg_button.text, "present")
+                        self.logger.info("{} present".format(msg_button.text))
                         if msg_button.text=="Message":
                             connect_restriction("write", user_name, None, self.logger)
                             self.logger.info("saved {} to db".format(user_name))
@@ -360,7 +360,7 @@ class LinkedinPy:
             return True
         return False
 
-    def connect_from_suggested(self, titile_must_contain):
+    def connect_from_suggested(self, titile_must_contain, mode="fast"):
         network_url = "https://www.linkedin.com/mynetwork/"
         web_address_navigator(Settings,self.browser, network_url)
         self.logger.info("Looking for: {}".format(titile_must_contain))
@@ -381,8 +381,9 @@ class LinkedinPy:
                 links = card.find_elements_by_css_selector('div.discover-person-card__info-container > a')
                 link = links[1]
                 self.logger.info(link.get_attribute('href'))
-                name = card.find_element_by_xpath("//div[1]/a[2]/span[2]")
-                self.logger.info("Name: {}".format(name.text))
+                if mode=="slow":#TODO:For some reason reading name is slowing it down
+                    name = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__name')
+                    self.logger.info("Name: {}".format(name.text))
                 occupation = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__occupation')
                 self.logger.info("Occupation: {}".format(occupation.text))
                 connect_button = card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button")
