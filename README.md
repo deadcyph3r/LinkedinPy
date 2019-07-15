@@ -99,10 +99,11 @@ It's an API to apply for jobs with "easy appy" button on linkedin
     session.jobs_easy_apply(position = 'Engineering Manager', 
       location = 'United States',
       resumeloctn = '/Users/ishandutta2007/Downloads/IshanDutta.big.pdf',
-      language='en', max_applications = 5)
+      language='en',
+      max_applications = 5)
  ```
- option `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
- Leave `resumeloctn` blank incase your linkedin default profile already shows attached resume.
+ Options `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
+ Leave `resumeloctn` blank incase your linkedin profile already shows attached resume.
 
 ## How to run:
 
@@ -114,7 +115,6 @@ It's an API to apply for jobs with "easy appy" button on linkedin
 ```bash
     */10 * * * * bash /path/to/LinkedinPy/run_linkedinpy_only_once_for_mac.sh /path/to/LinkedinPy/quickstart.py $USERNAME $PASSWORD
 ```
-
 
 
 ## Help build socialbotspy
