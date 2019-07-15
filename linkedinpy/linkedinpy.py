@@ -48,6 +48,19 @@ from selenium.common.exceptions import NoSuchElementException
 from socialcommons.exceptions import SocialPyError
 from .settings import Settings
 
+import time, random, os, csv, datetime
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+import pandas as pd
+import pyautogui
+from tkinter import filedialog, Tk
+import tkinter.messagebox as tm
+from urllib.request import urlopen
+# import loginGUI
+
 class LinkedinPy:
     """Class to be instantiated to use the script"""
     def __init__(self,
@@ -89,6 +102,13 @@ class LinkedinPy:
         if nogui:
             self.display = Display(visible=0, size=(800, 600))
             self.display.start()
+
+        self.language = None
+        self.appliedJobIDs = []
+        self.filename = None
+        self.position = None
+        self.location = None
+        self.resumeloctn = None
 
         self.browser = None
         self.headless_browser = headless_browser
@@ -670,6 +690,243 @@ class LinkedinPy:
 
             self.logger.info("============Next Page==============")
 
+#EASY APPLY CODE STARTS
+    def applications_loop(self, max_applications):
+        print("applications_loop")
+
+        count_application = 0
+        count_job = 0
+        jobs_per_page = 0
+
+        os.system("reset")
+
+        print("\nLooking for jobs.. Please wait..\n")
+
+        self.browser.set_window_position(0, 0)
+        self.browser.maximize_window()
+        self.browser, _ = self.next_jobs_page(jobs_per_page)
+        print("\nLooking for jobs.. Please wait..\n")
+        #below was causing issues, and not sure what they are for. 
+        #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
+        #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
+        #self.job_page = self.load_page(sleep=0.5)
+
+        while count_application < max_applications:
+
+            # sleep to make sure everything loads, add random to make us look human.
+            time.sleep(random.uniform(3.5, 6.9))
+            self.load_page(sleep=1)
+
+            # get job links
+            links = self.browser.find_elements_by_xpath(
+                    '//div[@data-job-id]'
+                    )
+
+            # get job ID of each job link
+            IDs = []
+            for link in links :
+                temp = link.get_attribute("data-job-id")
+                jobID = temp.split(":")[-1]
+                IDs.append(int(jobID))
+            IDs = set(IDs)
+
+            # remove already applied jobs
+            jobIDs = [x for x in IDs if x not in self.appliedJobIDs]
+
+            if len(jobIDs) == 0:
+                jobs_per_page = jobs_per_page + 25
+                count_job = 0
+                self.avoid_lock()
+                self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
+
+            # loop over IDs to apply
+            for jobID in jobIDs:
+                count_job += 1
+                self.get_job_page(jobID)
+
+                # get easy apply button
+                button = self.get_easy_apply_button ()
+                if button is not False:
+                    string_easy = "* has Easy Apply Button"
+                    button.click()
+                    self.send_resume()
+                    count_application += 1
+                else:
+                    string_easy = "* Doesn't have Easy Apply Button"
+
+                position_number = str(count_job + jobs_per_page)
+                print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+
+                # append applied job ID to csv file
+                timestamp = datetime.datetime.now()
+                toWrite = [timestamp, jobID]
+                with open(self.filename,'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(toWrite)
+
+                # sleep every 20 applications
+                if count_application % 20 == 0:
+                    sleepTime = random.randint(50, 90)
+                    print('\n\n****************************************\n\n')
+                    print('Time for a nap - see you in: ' + str(int(sleepTime/60)) + 'min..')
+                    print('\n\n****************************************\n\n')
+                    time.sleep (sleepTime)
+
+                # go to new page if all jobs are done
+                if count_job == len(jobIDs):
+                    jobs_per_page = jobs_per_page + 25
+                    count_job = 0
+                    print('\n\n****************************************\n\n')
+                    print('Going to next jobs page, YEAAAHHH!!')
+                    print('\n\n****************************************\n\n')
+                    self.avoid_lock()
+                    self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
+
+        # self.finish_apply()
+
+    def get_job_links(self, page):
+        links = []
+        for link in page.find_all('a'):
+            url = link.get('href')
+            if url:
+                if '/jobs/view' in url:
+                    links.append(url)
+        return set(links)
+
+    def get_job_page(self, jobID):
+        #root = 'www.linkedin.com'
+        #if root not in job:
+        job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+        self.browser.get(job)
+        self.job_page = self.load_page(sleep=0.5)
+        return self.job_page
+
+    def got_easy_apply(self, page):
+        #button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
+
+        button = self.browser.find_elements_by_xpath(
+                    '//button[contains(@class, "jobs-apply")]/span[1]'
+                    )
+        EasyApplyButton = button [0]
+        if EasyApplyButton.text in "Easy Apply" :
+            return EasyApplyButton
+        else :
+            return False
+        #return len(str(button)) > 4
+
+    def get_easy_apply_button(self):
+        try :
+            button = self.browser.find_elements_by_xpath(
+                        '//button[contains(@class, "jobs-apply")]/span[1]'
+                        )
+            #if button[0].text in "Easy Apply" :
+            EasyApplyButton = button [0]
+        except :
+            EasyApplyButton = False
+
+        return EasyApplyButton
+
+    def easy_apply_xpath(self):
+        button = self.get_easy_apply_button()
+        button_inner_html = str(button)
+        list_of_words = button_inner_html.split()
+        next_word = [word for word in list_of_words if "ember" in word and "id" in word]
+        ember = next_word[0][:-1]
+        xpath = '//*[@'+ember+']/button'
+        return xpath
+
+    def click_button(self, xpath):
+        triggerDropDown = self.browser.find_element_by_xpath(xpath)
+        time.sleep(0.5)
+        triggerDropDown.click()
+        time.sleep(1)
+
+    def send_resume(self):
+        try:
+            if self.resumeloctn:
+                self.browser.find_element_by_xpath('//*[@id="file-browse-input"]').send_keys(self.resumeloctn)
+            submit_button = None
+            time.sleep(3)
+            while not submit_button:
+                if self.language == "en":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Submit application')]")
+                elif self.language == "es":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar solicitud')]")
+                elif self.language == "pt":
+                    submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
+            submit_button.click()
+            print("clicked Submit application")
+            time.sleep(random.uniform(1.5, 2.5))
+        except Exception as e:
+            print(e)
+            print("Could not apply for this job")
+
+    def load_page(self, sleep=1):
+        scroll_page = 0
+        while scroll_page < 4000:
+            self.browser.execute_script("window.scrollTo(0,"+str(scroll_page)+" );")
+            scroll_page += 200
+            time.sleep(sleep)
+
+        if sleep != 1:
+            self.browser.execute_script("window.scrollTo(0,0);")
+            time.sleep(sleep * 3)
+
+        page = BeautifulSoup(self.browser.page_source, "lxml")
+        return page
+
+    def avoid_lock(self):
+        x, _ = pyautogui.position()
+        pyautogui.moveTo(x+200, None, duration=1.0)
+        pyautogui.moveTo(x, None, duration=0.5)
+        pyautogui.keyDown('ctrl')
+        pyautogui.press('esc')
+        pyautogui.keyUp('ctrl')
+        time.sleep(0.5)
+        pyautogui.press('esc')
+
+    def next_jobs_page(self, jobs_per_page):
+        self.browser.get(
+            "https://www.linkedin.com/jobs/search/?f_LF=f_AL&keywords=" +
+            self.position + self.location + "&start="+str(jobs_per_page))
+        if not self.headless_browser:
+            self.avoid_lock()
+        self.load_page()
+        return (self.browser, jobs_per_page)
+
+    def jobs_easy_apply(self, position, location, resumeloctn=None, language='en', max_applications = 5):
+        print("\nThese is your input:")
+        print(
+            "\nLanguage:  "+ language,
+            "\nPosition:  "+ position,
+            "\nLocation:  "+ location
+            )
+        print("\nLet's scrape some jobs!\n")
+
+        # get list of already applied jobs
+        #TOTO: Move this to linkedinpy DB
+        filename = 'joblist.csv'
+        try:
+            df = pd.read_csv(filename, header=None)
+            appliedJobIDs = list (df.iloc[:,1])
+        except:
+            appliedJobIDs = []
+
+        print("\nWelcome to Easy Apply Bot\n")
+        dirpath = os.getcwd()
+        print("current directory is : " + dirpath)
+
+        self.language = language
+        self.appliedJobIDs = appliedJobIDs
+        self.filename = filename
+
+        self.position = position
+        self.location = "&location=" + location
+        self.resumeloctn = resumeloctn
+
+        self.applications_loop(max_applications)
+
+#EASY APPLY CODE ENDS
 
     def dump_connect_restriction(self, profile_name, logger, logfolder):
         """ Dump connect restriction data to a local human-readable JSON """

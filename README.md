@@ -20,6 +20,7 @@ pip install -r requirements.txt
   - [search and endorse](#search-and-endorse)
   - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
   - [withdraw old invitations](#withdraw-old-invitations)
+  - [jobs easy apply](#jobs-easy-apply)
 
 ### search and connect
  
@@ -87,6 +88,21 @@ It's an API to withdraw invitation a month or more older
  with smart_run(session):
     session.withdraw_old_invitations(skip_pages=5)
  ```
+
+### jobs easy apply
+
+It's an API to apply for jobs with "easy appy" button on linkedin
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+    session.jobs_easy_apply(position = 'Engineering Manager', 
+      location = 'United States',
+      resumeloctn = '/Users/ishandutta2007/Downloads/IshanDutta.big.pdf',
+      language='en', max_applications = 5)
+ ```
+ option `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
+ Leave `resumeloctn` blank incase your linkedin default profile already shows attached resume.
 
 ## How to run:
 
