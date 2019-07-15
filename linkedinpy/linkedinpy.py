@@ -10,8 +10,6 @@ import json
 import sqlite3
 from itertools import repeat
 
-import pprint as pp
-
 from selenium.webdriver.common.action_chains import ActionChains
 
 from pyvirtualdisplay import Display
@@ -43,23 +41,14 @@ from socialcommons.quota_supervisor import quota_supervisor
 
 from .unconnect_util import connect_restriction
 
-# import exceptions
 from selenium.common.exceptions import NoSuchElementException
 from socialcommons.exceptions import SocialPyError
 from .settings import Settings
 
-import time, random, os, csv, datetime
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.keys import Keys
+import csv, datetime
 from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
-from tkinter import filedialog, Tk
-import tkinter.messagebox as tm
-from urllib.request import urlopen
-# import loginGUI
 
 class LinkedinPy:
     """Class to be instantiated to use the script"""
@@ -989,10 +978,6 @@ class LinkedinPy:
             self.dump_connect_restriction(self.username,
                                     self.logger,
                                     self.logfolder)
-            # dump_record_activity(self.username,
-            #                      self.logger,
-            #                      self.logfolder,
-            #                      Settings)
 
             with open('{}connected.txt'.format(self.logfolder), 'w') \
                     as connectFile:
@@ -1170,7 +1155,7 @@ def smart_run(session):
         if session.login():
             yield
         else:
-            self.logger.info("Not proceeding as login failed")
+            print("Not proceeding as login failed")
 
     except (Exception, KeyboardInterrupt) as exc:
         if isinstance(exc, NoSuchElementException):

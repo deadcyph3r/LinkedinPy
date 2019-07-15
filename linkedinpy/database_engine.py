@@ -1,7 +1,6 @@
 import os
 import sqlite3
 
-# from .settings import Settings
 SELECT_FROM_PROFILE_WHERE_NAME = "SELECT * FROM profiles WHERE name = :name"
 
 INSERT_INTO_PROFILE = "INSERT INTO profiles (name) VALUES (?)"
@@ -125,7 +124,6 @@ def get_profile(Settings, name, address, logger):
             .format(name, str(exc).encode("utf-8")))
     finally:
         if conn:
-            # close the open connection
             conn.close()
 
     profile = dict(profile)

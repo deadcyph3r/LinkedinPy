@@ -1,27 +1,10 @@
 """ Common utilities """
-# import time
-# import datetime
 from math import ceil
-# from math import radians
-# from math import degrees as rad2deg
-# from math import cos
-# import random
 import re
-# import regex
 import signal
-# import os
-# import sys
-# from sys import exit as clean_exit
-# from platform import system
 from platform import python_version
-# from subprocess import call
-# import csv
 import sqlite3
-# import json
 from contextlib import contextmanager
-# from tempfile import gettempdir
-# import emoji
-# from emoji.unicode_codes import UNICODE_EMOJI
 from argparse import ArgumentParser
 
 from selenium.webdriver.support.ui import WebDriverWait
@@ -32,10 +15,7 @@ from socialcommons.time_util import sleep
 from socialcommons.time_util import sleep_actual
 from .database_engine import get_database
 from socialcommons.quota_supervisor import quota_supervisor
-from .settings import Settings
-# from .settings import Selectors
 
-from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
 

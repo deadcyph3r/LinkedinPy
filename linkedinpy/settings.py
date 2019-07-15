@@ -4,12 +4,10 @@ Global variables
 By design, import no any other local module inside this file.
 Vice verse, it'd produce circular dependent imports.
 """
-
 from sys import platform
 from os import environ as environmental_variables
 from os.path import join as join_path
 from os.path import exists as path_exists
-
 
 class Settings:
     """ Globally accessible settings throughout whole project """
@@ -70,9 +68,6 @@ class Settings:
     WORKSPACE = {"name": "LinkedinPy", "path": environmental_variables.get("HOME")}
 
     DATABASE_LOCATION = localize_path("LinkedinPy", "db", "linkedinpy.db")
-
-    # connecters_count_xpath = '//div[2]/div[1]/nav/a[1]/span'
-    # connecting_count_xpath = '//div[2]/div[1]/nav/a[1]/span'
 
 # class Storage:
     """ Globally accessible standalone storage """

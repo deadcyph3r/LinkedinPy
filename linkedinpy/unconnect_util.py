@@ -1,41 +1,13 @@
 """ Module which handles the connect features like unconnecting and connecting """
-# from datetime import datetime, timedelta
-# import time
 import os
-# import random
 import json
-# import csv
 import sqlite3
-# from math import ceil
-
-# from socialcommons.time_util import sleep
-# from .util import delete_line_from_file
-# from .util import update_activity
-# from .util import add_user_to_blacklist
-# from .util import click_element
-# from .util import web_address_navigator
-# from .util import get_relationship_counts
-# from .util import emergency_exit
-# from .util import is_page_available
-# from .util import click_visibly
-# from .util import get_action_delay
-# from .util import truncate_float
-# from .print_log_writer import log_connected_pool
-# from .print_log_writer import log_uncertain_unconnected_pool
-# from .print_log_writer import log_record_all_unconnected
-# from socialcommons.relationship_tools import get_connecters
-# from socialcommons.relationship_tools import get_nonconnecters
 from .database_engine import get_database
-# from socialcommons.quota_supervisor import quota_supervisor
-# from .util import is_connect_me
-# from .util import get_epoch_time_diff
 from .settings import Settings
 
 def dump_connect_restriction(profile_name, logger, logfolder):
     """ Dump connect restriction data to a local human-readable JSON """
-
     try:
-        # get a DB and start a connection
         db, id = get_database(Settings)
         conn = sqlite3.connect(db)
 
@@ -49,7 +21,6 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             data = cur.fetchall()
 
         if data:
-            # get the existing data
             filename = "{}connectRestriction.json".format(logfolder)
             if os.path.isfile(filename):
                 with open(filename) as connectResFile:
@@ -57,7 +28,6 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             else:
                 current_data = {}
 
-            # pack the new data
             connect_data = {user_data[1]: user_data[2] for user_data in
                            data or []}
             current_data[profile_name] = connect_data
@@ -74,16 +44,13 @@ def dump_connect_restriction(profile_name, logger, logfolder):
 
     finally:
         if conn:
-            # close the open connection
             conn.close()
 
 
 def connect_restriction(operation, username, limit, logger):
     """ Keep track of the connected users and help avoid excessive connect of
     the same user """
-
     try:
-        # get a DB and start a connection
         db, id = get_database(Settings)
         conn = sqlite3.connect(db)
 
@@ -100,19 +67,16 @@ def connect_restriction(operation, username, limit, logger):
 
             if operation == "write":
                 if connect_data is None:
-                    # write a new record
                     cur.execute(
                         "INSERT INTO connectRestriction (profile_id, "
                         "username, times) VALUES (?, ?, ?)",
                         (id, username, 1))
                 else:
-                    # update the existing record
                     connect_data["times"] += 1
                     sql = "UPDATE connectRestriction set times = ? WHERE " \
                           "profile_id=? AND username = ?"
                     cur.execute(sql, (connect_data["times"], id, username))
 
-                # commit the latest changes
                 conn.commit()
 
             elif operation == "read":
@@ -136,5 +100,4 @@ def connect_restriction(operation, username, limit, logger):
 
     finally:
         if conn:
-            # close the open connection
             conn.close()
