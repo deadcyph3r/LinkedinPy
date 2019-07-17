@@ -21,7 +21,7 @@ class Settings:
 
     # locations
     log_location = localize_path("LinkedinPy", "logs")
-    database_location = localize_path("db", "linkedinpy.db")
+    database_location = localize_path("LinkedinPy/db", "linkedinpy.db")
     OS_ENV = ("windows" if platform == "win32"
         else "osx" if platform == "darwin"
         else "linux")

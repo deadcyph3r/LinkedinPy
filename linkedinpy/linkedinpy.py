@@ -307,6 +307,32 @@ class LinkedinPy:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
 
+    def save_1stconnects_todb(self,
+              skip_scrolls=5,
+              tot_scrolls=20,
+              sleep_delay=6):
+        self.logger.info("Saving all my connections")
+        my_connections_url = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
+        web_address_navigator(Settings,self.browser, my_connections_url)
+
+        for scroll in range(1, skip_scrolls+1):
+            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+        for scroll in range(skip_scrolls+1,skip_scrolls+tot_scrolls):
+            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            res_items = self.browser.find_elements_by_css_selector("li >  div.mn-connection-card > div.mn-connection-card__details")
+            print(len(res_items))
+            for i in range(max(0, len(res_items) - 45), len(res_items)):
+                try:
+                    res_item = res_items[i]
+                    link = res_item.find_element_by_css_selector("div > a")
+                    profile_link = link.get_attribute("href")
+                    user_name = profile_link.split('/')[4]
+                    self.logger.info("user_name : {}".format(user_name))
+                    connect_restriction("write", user_name, None, self.logger)
+                    self.logger.info("saved {} to db".format(user_name))
+                except Exception as e:
+                    self.logger.error(e)
 
     def search_1stconnects_and_savetodb(self,
               query,
@@ -351,11 +377,8 @@ class LinkedinPy:
                         profile_link = link.get_attribute("href")
                         user_name = profile_link.split('/')[4]
                         self.logger.info("user_name : {}".format(user_name))
-                        msg_button = res_item.find_element_by_xpath("//div[3]/div/div/button[text()='Message']")
-                        self.logger.info("{} present".format(msg_button.text))
-                        if msg_button.text=="Message":
-                            connect_restriction("write", user_name, None, self.logger)
-                            self.logger.info("saved {} to db".format(user_name))
+                        connect_restriction("write", user_name, None, self.logger)
+                        self.logger.info("saved {} to db".format(user_name))
                     except Exception as e:
                         self.logger.error(e)
             except Exception as e:

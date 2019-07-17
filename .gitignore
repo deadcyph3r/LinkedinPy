@@ -121,5 +121,6 @@ config.txt
 
 foundersearch.py
 foundersearchus.py
+silentadd.py
 easytest.py
 joblist.csv

@@ -13,13 +13,16 @@ pyenv local 3.6.0
 pip install -r requirements.txt
 ```
 
-##  APIs:
+##  Interact APIs
   - [search and connect](#search-and-connect)
   - [connect from suggested](#connect-from-suggested)
   - [search and endorse](#search-and-endorse)
-  - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
   - [withdraw old invitations](#withdraw-old-invitations)
   - [jobs easy apply](#jobs-easy-apply)
+
+##  Download APIs
+  - [save 1st connects to db](#save-1st-connects-to-db)
+  - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
 
 ### search and connect
  
@@ -61,22 +64,6 @@ It simply endorses your first connections fetched from linkedin search
                 )
  ```
 
-
-### search 1st connects and save to db
-
-It's an API to backup already connected contacts to local DB(for old connections and connections not made through search_and_connect API)
- 
-```python
- session = LinkedinPy()
-
- with smart_run(session):
-     session.search_1stconnects_and_savetodb(
-                    query="founder",
-                    city_code="%5B%22in%3A6508%22%5D",
-                    school_code="%5B%2213497%22%5D"
-                )
- ```
-
 ### withdraw old invitations
 
 It's an API to withdraw invitation a month or more older
@@ -103,6 +90,36 @@ It's an API to apply for jobs with "easy appy" button on linkedin
  ```
  Options `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
  Leave `resumeloctn` blank incase your linkedin profile already shows attached resume.
+
+
+### save 1st connects to db
+
+It's an API to backup already connected contacts to local DB(for old connections and connections not made through search_and_connect API)
+ 
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+     session.save_1stconnects_todb(
+                    skip_scrolls=5,
+                    tot_scrolls=10
+                )
+ ```
+
+### search 1st connects and save to db
+
+It's an API to backup already connected contacts to local DB(for old connections and connections not made through search_and_connect API)
+ 
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+     session.search_1stconnects_and_savetodb(
+                    query="founder",
+                    city_code="%5B%22in%3A6508%22%5D",
+                    school_code="%5B%2213497%22%5D"
+                )
+ ```
 
 ## How to run:
 
