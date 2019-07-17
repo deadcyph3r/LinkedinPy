@@ -50,6 +50,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
 
+PWD = '/Users/ishandutta2007/Documents/Projects/LinkedinPy'
+
 class LinkedinPy:
     """Class to be instantiated to use the script"""
     def __init__(self,
@@ -311,17 +313,35 @@ class LinkedinPy:
               skip_scrolls=5,
               tot_scrolls=20,
               sleep_delay=6):
-        self.logger.info("Saving all my connections")
+        try:
+            with open(PWD + "/last_scroll.txt") as f:
+                all_scrolls = f.read().splitlines()
+            last_scroll = all_scrolls[-1]
+            if last_scroll:
+                skip_scrolls = int(last_scroll)
+                self.logger.info("Last scroll found continuing from there")
+        except Exception as e:
+            self.logger.error(e)
+        self.logger.info("Starting scroll from: {}".format(skip_scrolls))
+
+        self.logger.info("Saving all my connections to db")
         my_connections_url = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
         web_address_navigator(Settings,self.browser, my_connections_url)
 
         for scroll in range(1, skip_scrolls+1):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.logger.info("scroll: {}".format(scroll))
+            sleep(1)
 
         for scroll in range(skip_scrolls+1,skip_scrolls+tot_scrolls):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             res_items = self.browser.find_elements_by_css_selector("li >  div.mn-connection-card > div.mn-connection-card__details")
-            print(len(res_items))
+            self.logger.info("scroll: {}".format(scroll))
+            self.logger.info("tot res_items: {}".format(len(res_items)))
+
+            with open(PWD + "/last_scroll.txt", "w") as f:
+                f.write(str(scroll))
+            sleep(1)
             for i in range(max(0, len(res_items) - 45), len(res_items)):
                 try:
                     res_item = res_items[i]
