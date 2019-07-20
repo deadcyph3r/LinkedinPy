@@ -35,9 +35,10 @@ def getUserData(Settings, query,
             basequery + query)
         return data
 
+
 def update_activity(Settings, action="server_calls"):
     """ Record every Instagram server call (page load, content load, likes,
-        comments, connects, unconnect). """
+        comments, follows, unfollow). """
     # check action availability
     quota_supervisor(Settings, "server_calls")
 
@@ -58,7 +59,7 @@ def update_activity(Settings, action="server_calls"):
         if data is None:
             # create a new record for the new day
             cur.execute("INSERT INTO recordActivity VALUES "
-                        "(?, 0, 1, STRFTIME('%Y-%m-%d %H:%M:%S', "
+                        "(?, 0, 0, 0, 0, 1, STRFTIME('%Y-%m-%d %H:%M:%S', "
                         "'now', 'localtime'))",
                         (id,))
 
@@ -76,15 +77,16 @@ def update_activity(Settings, action="server_calls"):
                 data["server_calls"] += 1
                 quota_supervisor(Settings, "server_calls", update=True)
 
-            sql = ("UPDATE recordActivity set "
-                   "connections = ?, server_calls = ?, "
+            sql = ("UPDATE recordActivity set likes = ?, comments = ?, "
+                   "follows = ?, unfollows = ?, server_calls = ?, "
                    "created = STRFTIME('%Y-%m-%d %H:%M:%S', 'now', "
                    "'localtime') "
                    "WHERE  profile_id=? AND STRFTIME('%Y-%m-%d %H', created) "
                    "== "
                    "STRFTIME('%Y-%m-%d %H', 'now', 'localtime')")
 
-            cur.execute(sql, (data['connections'], data['server_calls'], id))
+            cur.execute(sql, (data['likes'], data['comments'], data['follows'],
+                              data['unfollows'], data['server_calls'], id))
 
         # commit the latest changes
         conn.commit()

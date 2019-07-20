@@ -13,7 +13,10 @@ SQL_CREATE_PROFILE_TABLE = """
 SQL_CREATE_RECORD_ACTIVITY_TABLE = """
     CREATE TABLE IF NOT EXISTS `recordActivity` (
         `profile_id` INTEGER REFERENCES `profiles` (id),
-        `connections` SMALLINT UNSIGNED NOT NULL,
+        `likes` SMALLINT UNSIGNED NOT NULL,
+        `comments` SMALLINT UNSIGNED NOT NULL,
+        `follows` SMALLINT UNSIGNED NOT NULL,
+        `unfollows` SMALLINT UNSIGNED NOT NULL,
         `server_calls` INT UNSIGNED NOT NULL,
         `created` DATETIME NOT NULL);"""
 
