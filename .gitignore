@@ -2,6 +2,7 @@
 googlecl-pylint.rc.txt
 assets/chromedriver
 assets/chromedriver.exe
+in_jail.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

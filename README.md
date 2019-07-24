@@ -19,6 +19,7 @@ pip install -r requirements.txt
   - [search and endorse](#search-and-endorse)
   - [withdraw old invitations](#withdraw-old-invitations)
   - [jobs easy apply](#jobs-easy-apply)
+  - [auto reply messages with the first suggestion](#auto-reply-messages-with-the-first-suggestion)
 
 ##  Download APIs
   - [save 1st connects to db](#save-1st-connects-to-db)
@@ -90,6 +91,16 @@ It's an API to apply for jobs with "easy appy" button on linkedin
  ```
  Options `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
  Leave `resumeloctn` blank incase your linkedin profile already shows attached resume.
+
+### auto reply messages with the first suggestion
+For now the API just clicks the first suggestion for each of the messages, (Plans to integrate intelligence later. Use this with causion incase you want to, this was created just for fun)
+
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+    session.auto_reply_messages_with_the_first_suggestion()
+ ```
 
 
 ### save 1st connects to db

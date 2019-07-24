@@ -309,6 +309,26 @@ class LinkedinPy:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
 
+
+    def auto_reply_messages_with_the_first_suggestion(self,
+            sleep_delay=6):
+        url = "https://www.linkedin.com/messaging"
+        web_address_navigator(Settings,self.browser, url)
+        messages_select_elements = self.browser.find_elements_by_css_selector("div.msg-conversation-card__content")
+        delay_random = random.randint(
+                    ceil(sleep_delay * 0.85),
+                    ceil(sleep_delay * 1.14))
+        for messages_select_element in messages_select_elements:
+            messages_select_element.click()
+            sleep(delay_random)
+            try:
+                first_suggestion = self.browser.find_element_by_css_selector("div.msg-thread > div.conversations-quick-replies > ul > li:nth-child(1)")
+                self.logger.info(first_suggestion.text)
+                first_suggestion.click()
+            except Exception as e:
+                self.logger.info("No suggestion found")
+            sleep(delay_random)
+
     def save_1stconnects_todb(self,
               skip_scrolls=5,
               tot_scrolls=20,
