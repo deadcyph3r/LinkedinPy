@@ -43,6 +43,9 @@ It sends invite to your 2nd or 3rd degree connections fetched from linkedin sear
 
 ### connect from suggested
 
+You will find suggested profile near the bottom of `www.linkedin.com/mynetwork/` page.
+It simple connects from those having specified keyword in the title.
+
 ```python
  session = LinkedinPy()
 
@@ -89,7 +92,7 @@ It's an API to apply for jobs with "easy appy" button on linkedin
       language='en',
       max_applications = 5)
  ```
- Options `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default.
+ Options `resumeloctn`, `language` and `max_applications ` are `None`, `en` and `5` by default respectively.
  Leave `resumeloctn` blank incase your linkedin profile already shows attached resume.
 
 ### auto reply messages with the first suggestion

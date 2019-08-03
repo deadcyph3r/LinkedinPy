@@ -124,9 +124,11 @@ class LinkedinPy:
         self.already_liked = 0
         self.liked_comments = 0
         self.commented = 0
-        self.replied_to_comments = 0
+        self.replied_to_messages = 0
         self.connected = 0
         self.already_connected = 0
+        self.endorsements = 0
+        self.alrady_endorsements = 0
         self.unconnected = 0
         self.connected_by = 0
         self.connecting_num = 0
@@ -278,6 +280,7 @@ class LinkedinPy:
                              .perform())
                             self.logger.info("check_button clicked")
                             checked_in_page = checked_in_page + 1
+                            self.unconnected += 1
                             delay_random = random.randint(
                                         ceil(sleep_delay * 0.21),
                                         ceil(sleep_delay * 0.29))
@@ -325,6 +328,7 @@ class LinkedinPy:
                 first_suggestion = self.browser.find_element_by_css_selector("div.msg-thread > div.conversations-quick-replies > ul > li:nth-child(1)")
                 self.logger.info(first_suggestion.text)
                 first_suggestion.click()
+                self.replied_to_messages += 1
             except Exception as e:
                 self.logger.info("No suggestion found")
             sleep(delay_random)
@@ -553,6 +557,7 @@ class LinkedinPy:
 
                         if connect_restriction("read", user_name,  self.connect_times, self.logger):
                             self.logger.info("already connected")
+                            self.already_connected += 1
                             continue
 
                         try:
@@ -564,6 +569,7 @@ class LinkedinPy:
                         except Exception:
                             invite_sent_button = res_item.find_element_by_xpath("//div[3]/div/button[text()='Invite Sent']")
                             self.logger.info("Already {}".format(invite_sent_button.text))
+                            self.already_connected += 1
                             continue
 
                         try:
@@ -581,6 +587,7 @@ class LinkedinPy:
                                          .perform())
                                         self.logger.info("Clicked {}".format(sendnow_or_done_button.text))
                                         connects = connects + 1
+                                        self.connected += 1
                                         connect_restriction("write", user_name, None, self.logger)
                                         try:
                                             # update server calls
@@ -657,14 +664,19 @@ class LinkedinPy:
                                     ceil(sleep_delay * 0.85),
                                     ceil(sleep_delay * 1.14))
                         sleep(delay_random)
+                        return True
                     else:
                         self.logger.info('button_type already {}'.format(button_type))
+                        return False
                 except Exception as e:
                     self.logger.error(e)
+                    return False
             else:
                 self.logger.info('Skill & Endorsements pane not found')
+                return False
         except Exception as e:
             self.logger.error(e)
+            return False
 
     def search_and_endorse(self,
               query,
@@ -704,7 +716,6 @@ class LinkedinPy:
         else:
             st = 1
 
-        connects = 0
         for page_no in list(range(st, st + 1)):
             collected_profile_links = []
             try:
@@ -733,12 +744,13 @@ class LinkedinPy:
                 self.logger.error(e)
 
             for collected_profile_link in collected_profile_links:
-                self.endorse(collected_profile_link, sleep_delay=sleep_delay)
-                connects = connects + 1
-                if connects >= max_endorsements:
+                if self.endorse(collected_profile_link, sleep_delay=sleep_delay):
+                    self.endorsements += 1
+                else:
+                    self.already_endorsements += 1
+                if self.endorsements >= max_endorsements:
                     self.logger.info("max_endorsements({}) for this iteration reached , Returning...".format(max_endorsements))
                     return
-
 
             self.logger.info("============Next Page==============")
 
@@ -1150,6 +1162,7 @@ class LinkedinPy:
                  self.commented,
                  self.connected, self.already_connected,
                  self.unconnected,
+                 self.replied_to_messages,
                  self.inap_img,
                  self.not_valid_users]
 
@@ -1177,10 +1190,11 @@ class LinkedinPy:
                 "Sessional Live Report:\n"
                 "\t|> LIKED {} images  |  ALREADY LIKED: {}\n"
                 "\t|> COMMENTED on {} images\n"
-                "\t|> connected {} users  |  ALREADY connected: {}\n"
-                "\t|> UNconnected {} users\n"
+                "\t|> CONNECTED {} users  |  ALREADY CONNECTED: {}\n"
+                "\t|> ENDORSED {} users  |  ALREADY ENDORSED: {}\n"
+                "\t|> WITHDRAWN {} connect requests\n"
+                "\t|> REPLIED to {} messages\n"
                 "\t|> LIKED {} comments\n"
-                "\t|> REPLIED to {} comments\n"
                 "\t|> INAPPROPRIATE images: {}\n"
                 "\t|> NOT VALID users: {}\n"
                 "\n{}\n{}"
@@ -1189,9 +1203,11 @@ class LinkedinPy:
                         self.commented,
                         self.connected,
                         self.already_connected,
+                        self.endorsements,
+                        self.already_endorsements,
                         self.unconnected,
+                        self.replied_to_messages,
                         self.liked_comments,
-                        self.replied_to_comments,
                         self.inap_img,
                         self.not_valid_users,
                         owner_relationship_info,
