@@ -1,56 +1,50 @@
 """OS Modules environ method to get the setup vars from the Environment"""
+import csv
+import datetime
+import json
+import logging
+import os
+import random
+import sqlite3
 # import built-in & third-party modules
 import time
-from math import ceil
-import random
-from sys import platform
-from platform import python_version
-import os
-import json
-import sqlite3
-from itertools import repeat
-
-from selenium.webdriver.common.action_chains import ActionChains
-
-from pyvirtualdisplay import Display
-import logging
 from contextlib import contextmanager
 from copy import deepcopy
+from itertools import repeat
+from math import ceil
+from platform import python_version
 from sys import exit as clean_exit
+from sys import platform
 from tempfile import gettempdir
 
-from .login_util import login_user
-
-from socialcommons.time_util import sleep
-
-from .util import update_activity
-from .util import web_address_navigator
-from .util import interruption_handler
-from .util import highlight_print
-from .util import truncate_float
-from .util import save_account_progress
-from .util import parse_cli_args
-
-from .database_engine import get_database
-from socialcommons.browser import set_selenium_local_session
-from socialcommons.browser import close_browser
-from socialcommons.file_manager import get_workspace
-from socialcommons.file_manager import get_logfolder
-
-from socialcommons.quota_supervisor import quota_supervisor
-
-from .unconnect_util import connect_restriction
-
-from selenium.common.exceptions import NoSuchElementException
-from socialcommons.exceptions import SocialPyError
-from .settings import Settings
-
-import csv, datetime
-from bs4 import BeautifulSoup
 import pandas as pd
 import pyautogui
+from bs4 import BeautifulSoup
+from pyvirtualdisplay import Display
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
+from socialcommons.browser import close_browser, set_selenium_local_session
+from socialcommons.exceptions import SocialPyError
+from socialcommons.file_manager import get_logfolder, get_workspace
+from socialcommons.quota_supervisor import quota_supervisor
+from socialcommons.time_util import sleep
+
+from .database_engine import get_database
+from .login_util import login_user
+from .settings import Settings
+from .unconnect_util import connect_restriction
+from .util import (
+    highlight_print,
+    interruption_handler,
+    parse_cli_args,
+    save_account_progress,
+    truncate_float,
+    update_activity,
+    web_address_navigator
+)
 
 PWD = '/Users/ishandutta2007/Documents/Projects/LinkedinPy'
+
 
 class LinkedinPy:
     """Class to be instantiated to use the script"""
@@ -233,25 +227,25 @@ class LinkedinPy:
             # try to save account progress
             try:
                 save_account_progress(self.browser,
-                                    "https://www.linkedin.com/",
-                                    self.username,
-                                    self.logger)
+                                      "https://www.linkedin.com/",
+                                      self.username,
+                                      self.logger)
             except Exception:
                 self.logger.warning(
                     'Unable to save account progress, skipping data update')
         return self
 
     def withdraw_old_invitations(self,
-            skip_pages=10,
-            sleep_delay=6):
+                                 skip_pages=10,
+                                 sleep_delay=6):
         page_no = skip_pages
         while page_no < 100:
             page_no = page_no + 1
             try:
                 url = "https://www.linkedin.com/mynetwork/invitation-manager/sent/?page=" + str(page_no)
-                web_address_navigator(Settings,self.browser, url)
+                web_address_navigator(Settings, self.browser, url)
                 print("Starting page:", page_no)
-                if self.browser.current_url=="https://www.linkedin.com/mynetwork/invitation-manager/sent/" or len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5"))==0:
+                if self.browser.current_url == "https://www.linkedin.com/mynetwork/invitation-manager/sent/" or len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5")) == 0:
                     print("============Last Page Reached==============")
                     break
                 checked_in_page = 0
@@ -312,11 +306,9 @@ class LinkedinPy:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
 
-
-    def auto_reply_messages_with_the_first_suggestion(self,
-            sleep_delay=6):
+    def auto_reply_messages_with_the_first_suggestion(self, sleep_delay=6):
         url = "https://www.linkedin.com/messaging"
-        web_address_navigator(Settings,self.browser, url)
+        web_address_navigator(Settings, self.browser, url)
         messages_select_elements = self.browser.find_elements_by_css_selector("div.msg-conversation-card__content")
         delay_random = random.randint(
                     ceil(sleep_delay * 0.85),
@@ -329,14 +321,14 @@ class LinkedinPy:
                 self.logger.info(first_suggestion.text)
                 first_suggestion.click()
                 self.replied_to_messages += 1
-            except Exception as e:
+            except Exception:
                 self.logger.info("No suggestion found")
             sleep(delay_random)
 
     def save_1stconnects_todb(self,
-              skip_scrolls=5,
-              tot_scrolls=20,
-              sleep_delay=6):
+                              skip_scrolls=5,
+                              tot_scrolls=20,
+                              sleep_delay=6):
         try:
             with open(PWD + "/last_scroll.txt") as f:
                 all_scrolls = f.read().splitlines()
@@ -350,14 +342,14 @@ class LinkedinPy:
 
         self.logger.info("Saving all my connections to db")
         my_connections_url = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
-        web_address_navigator(Settings,self.browser, my_connections_url)
+        web_address_navigator(Settings, self.browser, my_connections_url)
 
         for scroll in range(1, skip_scrolls+1):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             self.logger.info("scroll: {}".format(scroll))
             sleep(1)
 
-        for scroll in range(skip_scrolls+1,skip_scrolls+tot_scrolls):
+        for scroll in range(skip_scrolls + 1, skip_scrolls + tot_scrolls):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             res_items = self.browser.find_elements_by_css_selector("li >  div.mn-connection-card > div.mn-connection-card__details")
             self.logger.info("scroll: {}".format(scroll))
@@ -379,14 +371,14 @@ class LinkedinPy:
                     self.logger.error(e)
 
     def search_1stconnects_and_savetodb(self,
-              query,
-              city_code,
-              school_code=None,
-              past_company=None,
-              random_start=True,
-              max_pages=10,
-              max_connects=25,
-              sleep_delay=6):
+                                        query,
+                                        city_code,
+                                        school_code=None,
+                                        past_company=None,
+                                        random_start=True,
+                                        max_pages=10,
+                                        max_connects=25,
+                                        sleep_delay=6):
         """ search linkedin and connect from a given profile """
 
         self.logger.info("Searching for: query={}, city_code={}, school_code={}".format(query, city_code, school_code))
@@ -401,17 +393,17 @@ class LinkedinPy:
         search_url = search_url + "&keywords=" + query
         search_url = search_url + "&origin=" + "FACETED_SEARCH"
 
-        for page_no in range(1,101):
+        for page_no in range(1, 101):
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
-                web_address_navigator(Settings,self.browser, temp_search_url)
+                web_address_navigator(Settings, self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
                     sleep(1)
                     self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight/" + str(jc) + ");")
 
-                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))==0:
+                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) == 0:
                     self.logger.info("============Last Page Reached or asking for Premium membership==============")
                     break
                 for i in range(0, len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))):
@@ -430,7 +422,7 @@ class LinkedinPy:
             self.logger.info("============Next Page==============")
 
     def test_page(self, search_url, page_no):
-        web_address_navigator(Settings,self.browser, search_url)
+        web_address_navigator(Settings, self.browser, search_url)
         self.logger.info("Testing page: {}".format(page_no))
         if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) > 0:
             return True
@@ -438,14 +430,14 @@ class LinkedinPy:
 
     def connect_from_suggested(self, titile_must_contain, mode="fast"):
         network_url = "https://www.linkedin.com/mynetwork/"
-        web_address_navigator(Settings,self.browser, network_url)
+        web_address_navigator(Settings, self.browser, network_url)
         self.logger.info("Looking for: {}".format(titile_must_contain))
 
         for i in repeat(None, 10):
             self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             sleep(1)
             cards = self.browser.find_elements_by_css_selector('div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
-            if len(cards)>9:
+            if len(cards) > 9:
                 self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 break
 
@@ -457,14 +449,14 @@ class LinkedinPy:
                 links = card.find_elements_by_css_selector('div.discover-person-card__info-container > a')
                 link = links[1]
                 self.logger.info(link.get_attribute('href'))
-                if mode=="slow":#TODO:For some reason reading name is slowing it down
+                if mode == "slow":  # TODO:For some reason reading name is slowing it down
                     name = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__name')
                     self.logger.info("Name: {}".format(name.text))
                 occupation = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__occupation')
                 self.logger.info("Occupation: {}".format(occupation.text))
                 connect_button = card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button")
                 self.logger.info("Button: {}".format(connect_button.text))
-                if connect_button.text=='Connect' and titile_must_contain.lower() in occupation.text.lower():
+                if connect_button.text == 'Connect' and titile_must_contain.lower() in occupation.text.lower():
                     self.logger.info("Connect button found, connecting...")
                     self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button"))
                     self.logger.info("----> Clicked {}".format(connect_button.text))
@@ -474,15 +466,15 @@ class LinkedinPy:
             self.logger.info("====")
 
     def search_and_connect(self,
-              query,
-              connection_relationship_code,
-              city_code,
-              school_code=None,
-              past_company=None,
-              random_start=True,
-              max_pages=10,
-              max_connects=25,
-              sleep_delay=6):
+                           query,
+                           connection_relationship_code,
+                           city_code,
+                           school_code=None,
+                           past_company=None,
+                           random_start=True,
+                           max_pages=10,
+                           max_connects=25,
+                           sleep_delay=6):
         """ search linkedin and connect from a given profile """
 
         if quota_supervisor(Settings, "connects") == "jump":
@@ -504,9 +496,8 @@ class LinkedinPy:
         search_url = search_url + "&keywords=" + query
         search_url = search_url + "&origin=" + "FACETED_SEARCH"
 
-
         temp_search_url = search_url + "&page=1"
-        if self.test_page(search_url=temp_search_url, page_no=1)==False:
+        if self.test_page(search_url=temp_search_url, page_no=1) is False:
             self.logger.info("============Definitely no Result, Next Query==============")
             return 0
 
@@ -524,7 +515,7 @@ class LinkedinPy:
 
         for page_no in list(range(st, st + max_pages)):
 
-            if prev_connects==connects:
+            if prev_connects == connects:
                 self.logger.info("============Limits might have exceeded or all Invites pending from this page(let's exit either case)==============")
                 break
             else:
@@ -533,26 +524,26 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-                    web_address_navigator(Settings,self.browser, temp_search_url)
+                    web_address_navigator(Settings, self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
                     sleep(1)
                     self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
 
-                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))==0:
+                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) == 0:
                     self.logger.info("============Last Page Reached or asking for Premium membership==============")
                     break
                 for i in range(0, len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))):
                     try:
-                        res_item = self.browser.find_elements_by_css_selector("li.search-result div.search-entity div.search-result__wrapper")[i]# div.search-result__actions div button")
+                        res_item = self.browser.find_elements_by_css_selector("li.search-result div.search-entity div.search-result__wrapper")[i]  # div.search-result__actions div button")
                         # pp.pprint(res_item.get_attribute('innerHTML'))
                         link = res_item.find_element_by_css_selector("div > a")
                         profile_link = link.get_attribute("href")
                         self.logger.info("Profile : {}".format(profile_link))
                         user_name = profile_link.split('/')[4]
                         # self.logger.info("user_name : {}".format(user_name))
-                        name = res_item.find_element_by_css_selector("h3 > span > span > span")#//span/span/span[1]")
+                        name = res_item.find_element_by_css_selector("h3 > span > span > span")  # //span/span/span[1]")
                         self.logger.info("Name : {}".format(name.text))
 
                         if connect_restriction("read", user_name,  self.connect_times, self.logger):
@@ -576,9 +567,9 @@ class LinkedinPy:
                             modal = self.browser.find_element_by_css_selector("div.modal-wormhole-content > div")
                             if modal:
                                 try:
-                                    sendnow_or_done_button = modal.find_element_by_xpath("//div[1]/div/section/div/div[2]/button[2]")#text()='Send now']")
+                                    sendnow_or_done_button = modal.find_element_by_xpath("//div[1]/div/section/div/div[2]/button[2]")  # text()='Send now']")
                                     self.logger.info(sendnow_or_done_button.text)
-                                    if not (sendnow_or_done_button.text=='Done' or sendnow_or_done_button.text=='Send now'):
+                                    if not (sendnow_or_done_button.text == 'Done' or sendnow_or_done_button.text == 'Send now'):
                                         raise Exception("Send Now or Done button not found")
                                     if sendnow_or_done_button.is_enabled():
                                         (ActionChains(self.browser)
@@ -597,7 +588,7 @@ class LinkedinPy:
                                         sleep(2)
                                     else:
                                         try:
-                                            #TODO: input("find correct close XPATH")
+                                            # TODO: input("find correct close XPATH")
                                             close_button = modal.find_element_by_xpath("//div[1]/div/section/div/header/button")
                                             (ActionChains(self.browser)
                                              .move_to_element(close_button)
@@ -641,10 +632,10 @@ class LinkedinPy:
             return connects
 
     def endorse(self,
-              profile_link,
-              sleep_delay):
+                profile_link,
+                sleep_delay):
         try:
-            web_address_navigator(Settings,self.browser, profile_link)
+            web_address_navigator(Settings, self.browser, profile_link)
 
             for jc in range(1, 10):
                 sleep(1)
@@ -655,7 +646,7 @@ class LinkedinPy:
                 try:
                     first_skill_button_icon = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button > li-icon")
                     button_type = first_skill_button_icon.get_attribute("type")
-                    if button_type=='plus-icon':
+                    if button_type == 'plus-icon':
                         first_skill_button = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button")
                         self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", first_skill_button)
                         first_skill_title = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > p > a > span")
@@ -679,17 +670,17 @@ class LinkedinPy:
             return False
 
     def search_and_endorse(self,
-              query,
-              city_code,
-              school_code,
-              random_start=True,
-              max_pages=3,
-              max_endorsements=25,
-              sleep_delay=6):
+                           query,
+                           city_code,
+                           school_code,
+                           random_start=True,
+                           max_pages=3,
+                           max_endorsements=25,
+                           sleep_delay=6):
         """ search linkedin and endose few first connections """
 
         if quota_supervisor(Settings, "connects") == "jump":
-            return #False, "jumped"
+            return  # False, "jumped"
 
         print("Searching for: ", query, city_code, school_code)
         search_url = "https://www.linkedin.com/search/results/people/?"
@@ -707,7 +698,7 @@ class LinkedinPy:
             while True and trial < 3:
                 st = random.randint(1, 3)
                 temp_search_url = search_url + "&page=" + str(st)
-                web_address_navigator(Settings,self.browser, temp_search_url)
+                web_address_navigator(Settings, self.browser, temp_search_url)
                 self.logger.info("Testing page:".format(st))
                 result_items = self.browser.find_elements_by_css_selector("div.search-result__wrapper")
                 if len(result_items) > 0:
@@ -721,7 +712,7 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-                    web_address_navigator(Settings,self.browser, temp_search_url)
+                    web_address_navigator(Settings, self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
@@ -754,7 +745,7 @@ class LinkedinPy:
 
             self.logger.info("============Next Page==============")
 
-#EASY APPLY CODE STARTS
+    # EASY APPLY CODE STARTS
     def applications_loop(self, max_applications):
         print("applications_loop")
 
@@ -770,10 +761,10 @@ class LinkedinPy:
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(jobs_per_page)
         print("\nLooking for jobs.. Please wait..\n")
-        #below was causing issues, and not sure what they are for. 
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
-        #self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
-        #self.job_page = self.load_page(sleep=0.5)
+        # below was causing issues, and not sure what they are for.
+        # self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
+        # self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
+        # self.job_page = self.load_page(sleep=0.5)
 
         while count_application < max_applications:
 
@@ -788,7 +779,7 @@ class LinkedinPy:
 
             # get job ID of each job link
             IDs = []
-            for link in links :
+            for link in links:
                 temp = link.get_attribute("data-job-id")
                 jobID = temp.split(":")[-1]
                 IDs.append(int(jobID))
@@ -809,7 +800,7 @@ class LinkedinPy:
                 self.get_job_page(jobID)
 
                 # get easy apply button
-                button = self.get_easy_apply_button ()
+                button = self.get_easy_apply_button()
                 if button is not False:
                     string_easy = "* has Easy Apply Button"
                     button.click()
@@ -824,7 +815,7 @@ class LinkedinPy:
                 # append applied job ID to csv file
                 timestamp = datetime.datetime.now()
                 toWrite = [timestamp, jobID]
-                with open(self.filename,'a') as f:
+                with open(self.filename, 'a') as f:
                     writer = csv.writer(f)
                     writer.writerow(toWrite)
 
@@ -834,7 +825,7 @@ class LinkedinPy:
                     print('\n\n****************************************\n\n')
                     print('Time for a nap - see you in: ' + str(int(sleepTime/60)) + 'min..')
                     print('\n\n****************************************\n\n')
-                    time.sleep (sleepTime)
+                    time.sleep(sleepTime)
 
                 # go to new page if all jobs are done
                 if count_job == len(jobIDs):
@@ -858,34 +849,33 @@ class LinkedinPy:
         return set(links)
 
     def get_job_page(self, jobID):
-        #root = 'www.linkedin.com'
-        #if root not in job:
-        job = 'https://www.linkedin.com/jobs/view/'+ str(jobID)
+        # root = 'www.linkedin.com'
+        # if root not in job:
+        job = 'https://www.linkedin.com/jobs/view/' + str(jobID)
         self.browser.get(job)
         self.job_page = self.load_page(sleep=0.5)
         return self.job_page
 
     def got_easy_apply(self, page):
-        #button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
+        # button = page.find("button", class_="jobs-apply-button artdeco-button jobs-apply-button--top-card artdeco-button--3 ember-view")
 
         button = self.browser.find_elements_by_xpath(
                     '//button[contains(@class, "jobs-apply")]/span[1]'
                     )
-        EasyApplyButton = button [0]
-        if EasyApplyButton.text in "Easy Apply" :
+        EasyApplyButton = button[0]
+        if EasyApplyButton.text in "Easy Apply":
             return EasyApplyButton
-        else :
+        else:
             return False
-        #return len(str(button)) > 4
 
     def get_easy_apply_button(self):
-        try :
+        try:
             button = self.browser.find_elements_by_xpath(
                         '//button[contains(@class, "jobs-apply")]/span[1]'
                         )
-            #if button[0].text in "Easy Apply" :
-            EasyApplyButton = button [0]
-        except :
+            # if button[0].text in "Easy Apply" :
+            EasyApplyButton = button[0]
+        except Exception:
             EasyApplyButton = False
 
         return EasyApplyButton
@@ -958,22 +948,22 @@ class LinkedinPy:
         self.load_page()
         return (self.browser, jobs_per_page)
 
-    def jobs_easy_apply(self, position, location, resumeloctn=None, language='en', max_applications = 5):
+    def jobs_easy_apply(self, position, location, resumeloctn=None, language='en', max_applications=5):
         print("\nThese is your input:")
         print(
-            "\nLanguage:  "+ language,
-            "\nPosition:  "+ position,
-            "\nLocation:  "+ location
+            "\nLanguage:  " + language,
+            "\nPosition:  " + position,
+            "\nLocation:  " + location
             )
         print("\nLet's scrape some jobs!\n")
 
         # get list of already applied jobs
-        #TOTO: Move this to linkedinpy DB
+        # TOTO: Move this to linkedinpy DB
         filename = 'joblist.csv'
         try:
             df = pd.read_csv(filename, header=None)
-            appliedJobIDs = list (df.iloc[:,1])
-        except:
+            appliedJobIDs = list(df.iloc[:, 1])
+        except Exception:
             appliedJobIDs = []
 
         print("\nWelcome to Easy Apply Bot\n")
@@ -990,7 +980,7 @@ class LinkedinPy:
 
         self.applications_loop(max_applications)
 
-#EASY APPLY CODE ENDS
+# EASY APPLY CODE ENDS
 
     def dump_connect_restriction(self, profile_name, logger, logfolder):
         """ Dump connect restriction data to a local human-readable JSON """
@@ -1019,8 +1009,7 @@ class LinkedinPy:
                     current_data = {}
 
                 # pack the new data
-                connect_data = {user_data[1]: user_data[2] for user_data in
-                               data or []}
+                connect_data = {user_data[1]: user_data[2] for user_data in data or []}
                 current_data[profile_name] = connect_data
 
                 # dump the fresh connect data to a local human readable JSON
@@ -1051,8 +1040,8 @@ class LinkedinPy:
 
             # write useful information
             self.dump_connect_restriction(self.username,
-                                    self.logger,
-                                    self.logfolder)
+                                          self.logger,
+                                          self.logfolder)
 
             with open('{}connected.txt'.format(self.logfolder), 'w') \
                     as connectFile:
@@ -1112,9 +1101,9 @@ class LinkedinPy:
                      "comments": {"hourly": peak_comments[0],
                                   "daily": peak_comments[1]},
                      "connects": {"hourly": peak_connects[0],
-                                 "daily": peak_connects[1]},
+                                  "daily": peak_connects[1]},
                      "unconnects": {"hourly": peak_unconnects[0],
-                                   "daily": peak_unconnects[1]},
+                                    "daily": peak_unconnects[1]},
                      "server_calls": {"hourly": peak_server_calls[0],
                                       "daily": peak_server_calls[1]}}
 
@@ -1227,6 +1216,7 @@ class LinkedinPy:
         run_time = truncate_float(run_time, 2)
 
         return run_time
+
 
 @contextmanager
 def smart_run(session):

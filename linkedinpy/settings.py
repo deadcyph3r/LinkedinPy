@@ -4,10 +4,11 @@ Global variables
 By design, import no any other local module inside this file.
 Vice verse, it'd produce circular dependent imports.
 """
-from sys import platform
 from os import environ as environmental_variables
-from os.path import join as join_path
 from os.path import exists as path_exists
+from os.path import join as join_path
+from sys import platform
+
 
 class Settings:
     """ Globally accessible settings throughout whole project """
@@ -23,8 +24,8 @@ class Settings:
     log_location = localize_path("LinkedinPy", "logs")
     database_location = localize_path("LinkedinPy/db", "linkedinpy.db")
     OS_ENV = ("windows" if platform == "win32"
-        else "osx" if platform == "darwin"
-        else "linux")
+              else "osx" if platform == "darwin"
+              else "linux")
 
     specific_chromedriver = "chromedriver_{}".format(OS_ENV)
     chromedriver_location = localize_path("LinkedinPy", "assets", specific_chromedriver)
@@ -74,7 +75,3 @@ class Settings:
 
     # store realtime record activity data
     record_activity = {}
-
-
-
-# state of instantiation of LinkedinPy

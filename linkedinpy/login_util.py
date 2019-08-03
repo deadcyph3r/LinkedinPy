@@ -1,14 +1,18 @@
 """Module only used for the login part of the script"""
 # import built-in & third-party modules
 import time
-from selenium.webdriver.common.action_chains import ActionChains
 
+from selenium.webdriver.common.action_chains import ActionChains
 from socialcommons.time_util import sleep
-from .util import update_activity
-from .util import web_address_navigator
-from .util import get_current_url
-from .util import explicit_wait
+
 from .settings import Settings
+from .util import (
+    explicit_wait,
+    get_current_url,
+    update_activity,
+    web_address_navigator
+)
+
 
 def login_user(browser,
                username,
@@ -75,7 +79,7 @@ def login_user(browser,
     sleep(10)
 
     current_url = get_current_url(browser)
-    if current_url !=  "https://www.linkedin.com/feed/":
+    if current_url != "https://www.linkedin.com/feed/":
         explicit_wait(browser, "PFL", [], logger, 5)
 
     current_url = get_current_url(browser)
@@ -83,4 +87,3 @@ def login_user(browser,
         return True
     else:
         return False
-

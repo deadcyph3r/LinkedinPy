@@ -1,9 +1,11 @@
 """ Module which handles the connect features like unconnecting and connecting """
-import os
 import json
+import os
 import sqlite3
+
 from .database_engine import get_database
 from .settings import Settings
+
 
 def dump_connect_restriction(profile_name, logger, logfolder):
     """ Dump connect restriction data to a local human-readable JSON """
@@ -28,8 +30,7 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             else:
                 current_data = {}
 
-            connect_data = {user_data[1]: user_data[2] for user_data in
-                           data or []}
+            connect_data = {user_data[1]: user_data[2] for user_data in data or []}
             current_data[profile_name] = connect_data
 
             # dump the fresh connect data to a local human readable JSON

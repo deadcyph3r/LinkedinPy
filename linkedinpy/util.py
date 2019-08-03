@@ -1,23 +1,21 @@
 """ Common utilities """
-from math import ceil
 import re
 import signal
-from platform import python_version
 import sqlite3
-from contextlib import contextmanager
 from argparse import ArgumentParser
+from contextlib import contextmanager
+from math import ceil
+from platform import python_version
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
-
-from socialcommons.time_util import sleep
-from socialcommons.time_util import sleep_actual
-from .database_engine import get_database
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait
 from socialcommons.quota_supervisor import quota_supervisor
+from socialcommons.time_util import sleep, sleep_actual
 
-from selenium.common.exceptions import WebDriverException
-from selenium.common.exceptions import TimeoutException
+from .database_engine import get_database
+
 
 def getUserData(Settings, query,
                 browser,
@@ -90,6 +88,7 @@ def update_activity(Settings, action="server_calls"):
 
         # commit the latest changes
         conn.commit()
+
 
 def click_element(browser, element, tryNum=0):
     """
@@ -184,8 +183,10 @@ def format_number(number):
     return int(formatted_num)
 
 
+# TODO: Fix it
 def get_relationship_counts(browser, username, logger):
-    return 12000,12000
+    return 12000, 12000
+
 
 def web_address_navigator(Settings, browser, link):
     """Checks and compares current URL of web page and the URL to be
@@ -246,8 +247,8 @@ def interruption_handler(threaded=False, SIG_type=signal.SIGINT,
         if not threaded:
             signal.signal(SIG_type, original_handler)
 
-def highlight_print(Settings, username=None, message=None, priority=None, level=None,
-                    logger=None):
+
+def highlight_print(Settings, username=None, message=None, priority=None, level=None, logger=None):
     """ Print headers in a highlighted style """
     # can add other highlighters at other priorities enriching this function
 
@@ -378,9 +379,7 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
 
     except TimeoutException:
         if notify is True:
-            logger.info(
-                "Timed out with failure while explicitly waiting until {}!\n"
-                    .format(ec_name))
+            logger.info("Timed out with failure while explicitly waiting until {}!\n".format(ec_name))
         return False
 
     return result
@@ -399,6 +398,7 @@ def get_current_url(browser):
             current_url = None
 
     return current_url
+
 
 def truncate_float(number, precision, round=False):
     """ Truncate (shorten) a floating point value at given precision """
@@ -456,6 +456,7 @@ def save_account_progress(Settings, browser, username, logger):
             conn.commit()
     except Exception:
         logger.exception('message')
+
 
 def parse_cli_args():
     """ Parse arguments passed by command line interface """
