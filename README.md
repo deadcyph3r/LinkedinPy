@@ -7,7 +7,6 @@ It is recomended to use via pyenv We will be supporting python 3.6.0 and above g
 ```
 pip install --upgrade pip
 curl https://pyenv.run | bash
-curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 pyenv install 3.6.0
 pyenv local 3.6.0
 pip install -r requirements.txt
