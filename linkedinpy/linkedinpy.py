@@ -80,8 +80,7 @@ class LinkedinPy:
             cli_args.bypass_suspicious_attempt or bypass_suspicious_attempt)
         bypass_with_mobile = cli_args.bypass_with_mobile or bypass_with_mobile
         if not get_workspace(Settings):
-            raise SocialPyError(
-                "Oh no! I don't have a workspace to work at :'(")
+            raise SocialPyError("Oh no! I don't have a workspace to work at : '( ")
 
         self.nogui = nogui
         if nogui:
@@ -148,7 +147,6 @@ class LinkedinPy:
         Handles the creation and retrieval of loggers to avoid
         re-instantiation.
         """
-
         existing_logger = Settings.loggers.get(self.username)
         if existing_logger is not None:
             return existing_logger
@@ -238,16 +236,18 @@ class LinkedinPy:
     def withdraw_old_invitations(self,
                                  skip_pages=10,
                                  sleep_delay=6):
+        self.logger.info("===Starting withdraw_old_invitations===")
         page_no = skip_pages
         while page_no < 100:
             page_no = page_no + 1
             try:
                 url = "https://www.linkedin.com/mynetwork/invitation-manager/sent/?page=" + str(page_no)
                 web_address_navigator(Settings, self.browser, url)
-                print("Starting page:", page_no)
+                self.logger.info("Starting page: {}".format(page_no))
                 if self.browser.current_url == "https://www.linkedin.com/mynetwork/invitation-manager/sent/" or len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5")) == 0:
-                    print("============Last Page Reached==============")
+                    self.logger.info("============Last Page Reached==============")
                     break
+
                 checked_in_page = 0
                 for i in range(0, len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5"))):
                     try:
@@ -258,7 +258,7 @@ class LinkedinPy:
                             user_name = profile_link.split('/')[4]
                             self.logger.info("user_name : {}".format(user_name))
                         except Exception as e:
-                            print("Might be a stale profile", e)
+                            self.logger.info("Might be a stale profile {}".format(e))
                         time = res_item.find_element_by_css_selector("div > time")
                         self.logger.info("time : {}".format(time.text))
                         check_button = res_item.find_element_by_css_selector("div > div:nth-child(1) > input")
@@ -272,15 +272,17 @@ class LinkedinPy:
                              .move_to_element(check_button)
                              .click()
                              .perform())
-                            self.logger.info("check_button clicked")
+                            self.logger.info("----> check_button clicked")
                             checked_in_page = checked_in_page + 1
                             self.unconnected += 1
                             delay_random = random.randint(
                                         ceil(sleep_delay * 0.21),
                                         ceil(sleep_delay * 0.29))
                             sleep(delay_random)
+                        self.logger.info("====")
                     except Exception as e:
                         self.logger.error(e)
+
                 if checked_in_page > 0:
                     self.logger.info("Widraw to be pressed")
                     try:
@@ -292,19 +294,20 @@ class LinkedinPy:
                              .move_to_element(withdraw_button)
                              .click()
                              .perform())
-                            self.logger.info("withdraw_button clicked")
+                            self.logger.info("=====> withdraw_button clicked for {} users".format(checked_in_page))
                             page_no = page_no - 1
                             delay_random = random.randint(
                                         ceil(sleep_delay * 0.85),
                                         ceil(sleep_delay * 1.14))
                             sleep(delay_random)
                     except Exception as e:
-                        print("For some reason there is no withdraw_button inspite of checkings", e)
+                        self.logger.error("For some reason there is no withdraw_button inspite of checkings {}".format(e))
                 else:
                     self.logger.info("Nothing checked in this page")
             except Exception as e:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
+        self.logger.info("===Finishing withdraw_old_invitations===")
 
     def auto_reply_messages_with_the_first_suggestion(self, sleep_delay=6):
         url = "https://www.linkedin.com/messaging"
@@ -429,6 +432,7 @@ class LinkedinPy:
         return False
 
     def connect_from_suggested(self, titile_must_contain, mode="fast"):
+        self.logger.info("===Starting connect_from_suggested===")
         network_url = "https://www.linkedin.com/mynetwork/"
         web_address_navigator(Settings, self.browser, network_url)
         self.logger.info("Looking for: {}".format(titile_must_contain))
@@ -464,6 +468,7 @@ class LinkedinPy:
             except Exception as e:
                 self.logger.error(e)
             self.logger.info("====")
+        self.logger.info("===Finishing connect_from_suggested===")
 
     def search_and_connect(self,
                            query,
@@ -476,7 +481,7 @@ class LinkedinPy:
                            max_connects=25,
                            sleep_delay=6):
         """ search linkedin and connect from a given profile """
-
+        self.logger.info("===Starting search_and_connect===")
         if quota_supervisor(Settings, "connects") == "jump":
             return 0
 
@@ -594,16 +599,16 @@ class LinkedinPy:
                                              .move_to_element(close_button)
                                              .click()
                                              .perform())
-                                            print(sendnow_or_done_button.text, "disabled, clicked close")
+                                            self.logger.info("{} disabled, clicked close".format(sendnow_or_done_button.text))
                                             sleep(2)
                                         except Exception as e:
-                                            print("close_button not found, Failed with:", e)
+                                            self.logger.error("close_button not found, Failed with: {}".format(e))
                                 except Exception as e:
-                                    print("sendnow_or_done_button not found, Failed with:", e)
+                                    self.logger.error("sendnow_or_done_button not found, Failed with: {}".format(e))
                             else:
                                 self.logger.info("Popup not found")
                         except Exception as e:
-                            print("Popup not found, Failed with:", e)
+                            self.logger.error("Popup not found, Failed with: {}".format(e))
                             try:
                                 new_popup_buttons = self.browser.find_elements_by_css_selector("#artdeco-modal-outlet div.artdeco-modal-overlay div.artdeco-modal div.artdeco-modal__actionbar button.artdeco-button")
                                 gotit_button = new_popup_buttons[1]
@@ -611,10 +616,10 @@ class LinkedinPy:
                                  .move_to_element(gotit_button)
                                  .click()
                                  .perform())
-                                print(gotit_button.text, " clicked")
+                                self.logger.info("---> Clicked {}".format(gotit_button.text))
                                 sleep(2)
                             except Exception as e:
-                                print("New Popup also not found, Failed with:", e)
+                                self.logger.error("New Popup also not found, Failed with: {}".format(e))
 
                         self.logger.info("Connects sent in this iteration: {}".format(connects))
                         delay_random = random.randint(
@@ -630,6 +635,7 @@ class LinkedinPy:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
             return connects
+        self.logger.info("===Finishing search_and_connect===")
 
     def endorse(self,
                 profile_link,
@@ -650,7 +656,7 @@ class LinkedinPy:
                         first_skill_button = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button")
                         self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", first_skill_button)
                         first_skill_title = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > p > a > span")
-                        print(first_skill_title.text, "clicked")
+                        self.logger.info("---> Clicked {}".format(first_skill_title.text))
                         delay_random = random.randint(
                                     ceil(sleep_delay * 0.85),
                                     ceil(sleep_delay * 1.14))
@@ -678,11 +684,12 @@ class LinkedinPy:
                            max_endorsements=25,
                            sleep_delay=6):
         """ search linkedin and endose few first connections """
+        self.logger.info("===Starting search_and_endorse===")
 
         if quota_supervisor(Settings, "connects") == "jump":
             return  # False, "jumped"
 
-        print("Searching for: ", query, city_code, school_code)
+        self.logger.info("Searching for: {} {} {}".format(query, city_code, school_code))
         search_url = "https://www.linkedin.com/search/results/people/?"
         if city_code:
             search_url = search_url + "&facetGeoRegion=" + city_code
@@ -744,10 +751,11 @@ class LinkedinPy:
                     return
 
             self.logger.info("============Next Page==============")
+       self.logger.info("===Finishing search_and_endorse===")
 
     # EASY APPLY CODE STARTS
     def applications_loop(self, max_applications):
-        print("applications_loop")
+        self.logger.info("applications_loop")
 
         count_application = 0
         count_job = 0
@@ -755,12 +763,12 @@ class LinkedinPy:
 
         os.system("reset")
 
-        print("\nLooking for jobs.. Please wait..\n")
+        self.logger.info("Looking for jobs.. Please wait..")
 
         self.browser.set_window_position(0, 0)
         self.browser.maximize_window()
         self.browser, _ = self.next_jobs_page(jobs_per_page)
-        print("\nLooking for jobs.. Please wait..\n")
+        self.logger.info("Looking for jobs.. Please wait..")
         # below was causing issues, and not sure what they are for.
         # self.browser.find_element_by_class_name("jobs-search-dropdown__trigger-icon").click()
         # self.browser.find_element_by_class_name("jobs-search-dropdown__option").click()
@@ -810,7 +818,9 @@ class LinkedinPy:
                     string_easy = "* Doesn't have Easy Apply Button"
 
                 position_number = str(count_job + jobs_per_page)
-                print(f"\nPosition {position_number}:\n {self.browser.title} \n {string_easy} \n")
+                self.logger.info("Position {}:".format(position_number))
+                self.logger.info("{}".format(self.browser.title))
+                self.logger.info("{}".format(string_easy))
 
                 # append applied job ID to csv file
                 timestamp = datetime.datetime.now()
@@ -822,18 +832,18 @@ class LinkedinPy:
                 # sleep every 20 applications
                 if count_application % 20 == 0:
                     sleepTime = random.randint(50, 90)
-                    print('\n\n****************************************\n\n')
-                    print('Time for a nap - see you in: ' + str(int(sleepTime/60)) + 'min..')
-                    print('\n\n****************************************\n\n')
+                    self.logger.info('****************************************')
+                    self.logger.info('Time for a nap - see you in: {} min..'.format(int(sleepTime/60)))
+                    self.logger.info('****************************************')
                     time.sleep(sleepTime)
 
                 # go to new page if all jobs are done
                 if count_job == len(jobIDs):
                     jobs_per_page = jobs_per_page + 25
                     count_job = 0
-                    print('\n\n****************************************\n\n')
-                    print('Going to next jobs page, YEAAAHHH!!')
-                    print('\n\n****************************************\n\n')
+                    self.logger.info('****************************************')
+                    self.logger.info('Going to next jobs page, YEAAAHHH!!')
+                    self.logger.info('****************************************')
                     self.avoid_lock()
                     self.browser, jobs_per_page = self.next_jobs_page(jobs_per_page)
 
@@ -909,11 +919,11 @@ class LinkedinPy:
                 elif self.language == "pt":
                     submit_button = self.browser.find_element_by_xpath("//*[contains(text(), 'Enviar candidatura')]")
             submit_button.click()
-            print("clicked Submit application")
+            self.logger.info("clicked Submit application")
             time.sleep(random.uniform(1.5, 2.5))
         except Exception as e:
-            print(e)
-            print("Could not apply for this job")
+            self.logger.error(e)
+            self.logger.info("Could not apply for this job")
 
     def load_page(self, sleep=1):
         scroll_page = 0
@@ -949,13 +959,14 @@ class LinkedinPy:
         return (self.browser, jobs_per_page)
 
     def jobs_easy_apply(self, position, location, resumeloctn=None, language='en', max_applications=5):
-        print("\nThese is your input:")
-        print(
+        self.logger.info("===Starting jobs_easy_apply===")
+        self.logger.info("These is your input:")
+        self.logger.info(
             "\nLanguage:  " + language,
             "\nPosition:  " + position,
             "\nLocation:  " + location
             )
-        print("\nLet's scrape some jobs!\n")
+        self.logger.info("Let's scrape some jobs!")
 
         # get list of already applied jobs
         # TOTO: Move this to linkedinpy DB
@@ -966,9 +977,9 @@ class LinkedinPy:
         except Exception:
             appliedJobIDs = []
 
-        print("\nWelcome to Easy Apply Bot\n")
+        self.logger.info("Welcome to Easy Apply Bot")
         dirpath = os.getcwd()
-        print("current directory is : " + dirpath)
+        self.logger.info("current directory is : {}".format(dirpath))
 
         self.language = language
         self.appliedJobIDs = appliedJobIDs
@@ -979,8 +990,9 @@ class LinkedinPy:
         self.resumeloctn = resumeloctn
 
         self.applications_loop(max_applications)
+        self.logger.info("===Finishing jobs_easy_apply===")        
 
-# EASY APPLY CODE ENDS
+    # EASY APPLY CODE ENDS
 
     def dump_connect_restriction(self, profile_name, logger, logfolder):
         """ Dump connect restriction data to a local human-readable JSON """
@@ -1052,7 +1064,6 @@ class LinkedinPy:
 
             message = "Session ended!"
             highlight_print(Settings, self.username, message, "end", "info", self.logger)
-            print("\n\n")
 
     def set_quota_supervisor(self,
                              Settings,
@@ -1145,7 +1156,7 @@ class LinkedinPy:
     def live_report(self):
         """ Report live sessional statistics """
 
-        print('')
+        self.logger.info('')
 
         stats = [self.liked_img, self.already_liked,
                  self.commented,
