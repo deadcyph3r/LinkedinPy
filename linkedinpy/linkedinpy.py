@@ -48,6 +48,7 @@ PWD = '/Users/ishandutta2007/Documents/Projects/LinkedinPy'
 
 class LinkedinPy:
     """Class to be instantiated to use the script"""
+
     def __init__(self,
                  username=None,
                  userid=None,
@@ -80,7 +81,8 @@ class LinkedinPy:
             cli_args.bypass_suspicious_attempt or bypass_suspicious_attempt)
         bypass_with_mobile = cli_args.bypass_with_mobile or bypass_with_mobile
         if not get_workspace(Settings):
-            raise SocialPyError("Oh no! I don't have a workspace to work at : '( ")
+            raise SocialPyError(
+                "Oh no! I don't have a workspace to work at : '( ")
 
         self.nogui = nogui
         if nogui:
@@ -134,10 +136,12 @@ class LinkedinPy:
         self.show_logs = show_logs
         Settings.show_logs = show_logs or None
         self.multi_logs = multi_logs
-        self.logfolder = get_logfolder(self.username, self.multi_logs, Settings)
+        self.logfolder = get_logfolder(
+    self.username, self.multi_logs, Settings)
         self.logger = self.get_linkedinpy_logger(self.show_logs)
 
-        get_database(Settings, make=True)  # IMPORTANT: think twice before relocating
+        # IMPORTANT: think twice before relocating
+        get_database(Settings, make=True)
 
         if self.selenium_local_session is True:
             self.set_selenium_local_session(Settings)
@@ -241,31 +245,44 @@ class LinkedinPy:
         while page_no < 100:
             page_no = page_no + 1
             try:
-                url = "https://www.linkedin.com/mynetwork/invitation-manager/sent/?page=" + str(page_no)
+                url = "https://www.linkedin.com/mynetwork/invitation-manager/sent/?page=" + \
+                    str(page_no)
                 web_address_navigator(Settings, self.browser, url)
                 self.logger.info("Starting page: {}".format(page_no))
-                if self.browser.current_url == "https://www.linkedin.com/mynetwork/invitation-manager/sent/" or len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5")) == 0:
-                    self.logger.info("============Last Page Reached==============")
+                if self.browser.current_url == "https://www.linkedin.com/mynetwork/invitation-manager/sent/" or len(
+                    self.browser.find_elements_by_css_selector("li.invitation-card div.pl5")) == 0:
+                    self.logger.info(
+                        "============Last Page Reached==============")
                     break
 
                 checked_in_page = 0
-                for i in range(0, len(self.browser.find_elements_by_css_selector("li.invitation-card div.pl5"))):
+                for i in range(0, len(self.browser.find_elements_by_css_selector(
+                    "li.invitation-card div.pl5"))):
                     try:
-                        res_item = self.browser.find_elements_by_css_selector("li.invitation-card div.pl5")[i]
+                        res_item = self.browser.find_elements_by_css_selector(
+                            "li.invitation-card div.pl5")[i]
                         try:
-                            link = res_item.find_element_by_css_selector("div > a")
+                            link = res_item.find_element_by_css_selector(
+                                "div > a")
                             profile_link = link.get_attribute("href")
                             user_name = profile_link.split('/')[4]
-                            self.logger.info("user_name : {}".format(user_name))
+                            self.logger.info(
+    "user_name : {}".format(user_name))
                         except Exception as e:
-                            self.logger.info("Might be a stale profile {}".format(e))
-                        time = res_item.find_element_by_css_selector("div > time")
+                            self.logger.info(
+    "Might be a stale profile {}".format(e))
+                        time = res_item.find_element_by_css_selector(
+                            "div > time")
                         self.logger.info("time : {}".format(time.text))
-                        check_button = res_item.find_element_by_css_selector("div > div:nth-child(1) > input")
-                        check_status = check_button.get_attribute("data-artdeco-is-focused")
-                        self.logger.info("check_status : {}".format(check_status))
+                        check_button = res_item.find_element_by_css_selector(
+                            "div > div:nth-child(1) > input")
+                        check_status = check_button.get_attribute(
+                            "data-artdeco-is-focused")
+                        self.logger.info(
+    "check_status : {}".format(check_status))
 
-                        self.browser.execute_script("window.scrollTo(0, " + str((i+1)*104) + ");")
+                        self.browser.execute_script(
+                            "window.scrollTo(0, " + str((i + 1) * 104) + ");")
 
                         if "month" in time.text:
                             (ActionChains(self.browser)
@@ -287,21 +304,26 @@ class LinkedinPy:
                     self.logger.info("Widraw to be pressed")
                     try:
                         self.browser.execute_script("window.scrollTo(0, 0);")
-                        withdraw_button = self.browser.find_element_by_css_selector("ul > li.mn-list-toolbar__right-button > button")
-                        self.logger.info("withdraw_button : {}".format(withdraw_button.text))
+                        withdraw_button = self.browser.find_element_by_css_selector(
+                            "ul > li.mn-list-toolbar__right-button > button")
+                        self.logger.info(
+    "withdraw_button : {}".format(
+        withdraw_button.text))
                         if "Withdraw" in withdraw_button.text:
                             (ActionChains(self.browser)
                              .move_to_element(withdraw_button)
                              .click()
                              .perform())
-                            self.logger.info("=====> withdraw_button clicked for {} users".format(checked_in_page))
+                            self.logger.info(
+    "=====> withdraw_button clicked for {} users".format(checked_in_page))
                             page_no = page_no - 1
                             delay_random = random.randint(
                                         ceil(sleep_delay * 0.85),
                                         ceil(sleep_delay * 1.14))
                             sleep(delay_random)
                     except Exception as e:
-                        self.logger.error("For some reason there is no withdraw_button inspite of checkings {}".format(e))
+                        self.logger.error(
+    "For some reason there is no withdraw_button inspite of checkings {}".format(e))
                 else:
                     self.logger.info("Nothing checked in this page")
             except Exception as e:
@@ -312,7 +334,8 @@ class LinkedinPy:
     def auto_reply_messages_with_the_first_suggestion(self, sleep_delay=6):
         url = "https://www.linkedin.com/messaging"
         web_address_navigator(Settings, self.browser, url)
-        messages_select_elements = self.browser.find_elements_by_css_selector("div.msg-conversation-card__content")
+        messages_select_elements = self.browser.find_elements_by_css_selector(
+            "div.msg-conversation-card__content")
         delay_random = random.randint(
                     ceil(sleep_delay * 0.85),
                     ceil(sleep_delay * 1.14))
@@ -320,7 +343,8 @@ class LinkedinPy:
             messages_select_element.click()
             sleep(delay_random)
             try:
-                first_suggestion = self.browser.find_element_by_css_selector("div.msg-thread > div.conversations-quick-replies > ul > li:nth-child(1)")
+                first_suggestion = self.browser.find_element_by_css_selector(
+                    "div.msg-thread > div.conversations-quick-replies > ul > li:nth-child(1)")
                 self.logger.info(first_suggestion.text)
                 first_suggestion.click()
                 self.replied_to_messages += 1
@@ -347,14 +371,17 @@ class LinkedinPy:
         my_connections_url = "https://www.linkedin.com/mynetwork/invite-connect/connections/"
         web_address_navigator(Settings, self.browser, my_connections_url)
 
-        for scroll in range(1, skip_scrolls+1):
-            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        for scroll in range(1, skip_scrolls + 1):
+            self.browser.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);")
             self.logger.info("scroll: {}".format(scroll))
             sleep(1)
 
         for scroll in range(skip_scrolls + 1, skip_scrolls + tot_scrolls):
-            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            res_items = self.browser.find_elements_by_css_selector("li >  div.mn-connection-card > div.mn-connection-card__details")
+            self.browser.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);")
+            res_items = self.browser.find_elements_by_css_selector(
+                "li >  div.mn-connection-card > div.mn-connection-card__details")
             self.logger.info("scroll: {}".format(scroll))
             self.logger.info("tot res_items: {}".format(len(res_items)))
 
@@ -384,7 +411,9 @@ class LinkedinPy:
                                         sleep_delay=6):
         """ search linkedin and connect from a given profile """
 
-        self.logger.info("Searching for: query={}, city_code={}, school_code={}".format(query, city_code, school_code))
+        self.logger.info(
+    "Searching for: query={}, city_code={}, school_code={}".format(
+        query, city_code, school_code))
         search_url = "https://www.linkedin.com/search/results/people/?&facetNetwork=%5B%22F%22%5D"
         if city_code:
             search_url = search_url + "&facetGeoRegion=" + city_code
@@ -404,19 +433,25 @@ class LinkedinPy:
 
                 for jc in range(2, 11):
                     sleep(1)
-                    self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight/" + str(jc) + ");")
+                    self.browser.execute_script(
+    "window.scrollTo(0, document.body.scrollHeight/" + str(jc) + ");")
 
-                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) == 0:
-                    self.logger.info("============Last Page Reached or asking for Premium membership==============")
+                if len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper")) == 0:
+                    self.logger.info(
+                        "============Last Page Reached or asking for Premium membership==============")
                     break
-                for i in range(0, len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))):
+                for i in range(0, len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper"))):
                     try:
-                        res_item = self.browser.find_elements_by_css_selector("li.search-result div.search-entity div.search-result__wrapper")[i]
+                        res_item = self.browser.find_elements_by_css_selector(
+                            "li.search-result div.search-entity div.search-result__wrapper")[i]
                         link = res_item.find_element_by_css_selector("div > a")
                         profile_link = link.get_attribute("href")
                         user_name = profile_link.split('/')[4]
                         self.logger.info("user_name : {}".format(user_name))
-                        connect_restriction("write", user_name, None, self.logger)
+                        connect_restriction(
+    "write", user_name, None, self.logger)
                         self.logger.info("saved {} to db".format(user_name))
                     except Exception as e:
                         self.logger.error(e)
@@ -427,7 +462,8 @@ class LinkedinPy:
     def test_page(self, search_url, page_no):
         web_address_navigator(Settings, self.browser, search_url)
         self.logger.info("Testing page: {}".format(page_no))
-        if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) > 0:
+        if len(self.browser.find_elements_by_css_selector(
+            "div.search-result__wrapper")) > 0:
             return True
         return False
 
@@ -438,32 +474,46 @@ class LinkedinPy:
         self.logger.info("Looking for: {}".format(titile_must_contain))
 
         for i in repeat(None, 10):
-            self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.browser.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);")
             sleep(1)
-            cards = self.browser.find_elements_by_css_selector('div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
+            cards = self.browser.find_elements_by_css_selector(
+                'div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
             if len(cards) > 9:
-                self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                self.browser.execute_script(
+                    "window.scrollTo(0, document.body.scrollHeight);")
                 break
 
-        cards = self.browser.find_elements_by_css_selector('div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
+        cards = self.browser.find_elements_by_css_selector(
+            'div.ember-view > div.application-outlet > div.authentication-outlet > div.ember-view > div#mynetwork > div.body > div.ember-view > div.neptune-grid > div.core-rail > div > section.artdeco-card > section.ember-view > artdeco-tabs > artdeco-tabpanel.ember-view > ul > li  > div > section.discover-person-card')
         self.logger.info("Collected cards count: {}".format(len(cards)))
 
         for card in cards:
             try:
-                links = card.find_elements_by_css_selector('div.discover-person-card__info-container > a')
+                links = card.find_elements_by_css_selector(
+                    'div.discover-person-card__info-container > a')
                 link = links[1]
                 self.logger.info(link.get_attribute('href'))
                 if mode == "slow":  # TODO:For some reason reading name is slowing it down
-                    name = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__name')
+                    name = card.find_element_by_css_selector(
+                        'div.discover-person-card__info-container > a > span.discover-person-card__name')
                     self.logger.info("Name: {}".format(name.text))
-                occupation = card.find_element_by_css_selector('div.discover-person-card__info-container > a > span.discover-person-card__occupation')
+                occupation = card.find_element_by_css_selector(
+                    'div.discover-person-card__info-container > a > span.discover-person-card__occupation')
                 self.logger.info("Occupation: {}".format(occupation.text))
-                connect_button = card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button")
+                connect_button = card.find_element_by_css_selector(
+                    "div.discover-person-card__bottom-container > footer > button")
                 self.logger.info("Button: {}".format(connect_button.text))
-                if connect_button.text == 'Connect' and titile_must_contain.lower() in occupation.text.lower():
+                if connect_button.text == 'Connect' and titile_must_contain.lower(
+                ) in occupation.text.lower():
                     self.logger.info("Connect button found, connecting...")
-                    self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button"))
-                    self.logger.info("----> Clicked {}".format(connect_button.text))
+                    self.browser.execute_script(
+    "var evt = document.createEvent('MouseEvents');" +
+    "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" +
+    "arguments[0].dispatchEvent(evt);",
+     card.find_element_by_css_selector("div.discover-person-card__bottom-container > footer > button"))
+                    self.logger.info(
+                        "----> Clicked {}".format(connect_button.text))
                     sleep(1)
             except Exception as e:
                 self.logger.error(e)
@@ -485,7 +535,9 @@ class LinkedinPy:
         if quota_supervisor(Settings, "connects") == "jump":
             return 0
 
-        self.logger.info("Searching for: query={}, connection_relationship_code={}, city_code={}, school_code={}".format(query, connection_relationship_code, city_code, school_code))
+        self.logger.info(
+    "Searching for: query={}, connection_relationship_code={}, city_code={}, school_code={}".format(
+        query, connection_relationship_code, city_code, school_code))
         connects = 0
         prev_connects = -1
         search_url = "https://www.linkedin.com/search/results/people/?"
@@ -503,14 +555,15 @@ class LinkedinPy:
 
         temp_search_url = search_url + "&page=1"
         if self.test_page(search_url=temp_search_url, page_no=1) is False:
-            self.logger.info("============Definitely no Result, Next Query==============")
+            self.logger.info(
+                "============Definitely no Result, Next Query==============")
             return 0
 
         if random_start:
             trial = 0
             st = 5
             while True and trial < 5 and st > 1:
-                st = random.randint(1, st-1)
+                st = random.randint(1, st - 1)
                 temp_search_url = search_url + "&page=" + str(st)
                 if self.test_page(search_url=temp_search_url, page_no=st):
                     break
@@ -521,7 +574,8 @@ class LinkedinPy:
         for page_no in list(range(st, st + max_pages)):
 
             if prev_connects == connects:
-                self.logger.info("============Limits might have exceeded or all Invites pending from this page(let's exit either case)==============")
+                self.logger.info(
+                    "============Limits might have exceeded or all Invites pending from this page(let's exit either case)==============")
                 break
             else:
                 prev_connects = connects
@@ -529,105 +583,144 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-                    web_address_navigator(Settings, self.browser, temp_search_url)
+                    web_address_navigator(
+    Settings, self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
                     sleep(1)
-                    self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
+                    self.browser.execute_script(
+    "window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
 
-                if len(self.browser.find_elements_by_css_selector("div.search-result__wrapper")) == 0:
-                    self.logger.info("============Last Page Reached or asking for Premium membership==============")
+                if len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper")) == 0:
+                    self.logger.info(
+                        "============Last Page Reached or asking for Premium membership==============")
                     break
-                for i in range(0, len(self.browser.find_elements_by_css_selector("div.search-result__wrapper"))):
+                for i in range(0, len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper"))):
                     try:
-                        res_item = self.browser.find_elements_by_css_selector("li.search-result div.search-entity div.search-result__wrapper")[i]  # div.search-result__actions div button")
+                        res_item = self.browser.find_elements_by_css_selector(
+                            "li.search-result div.search-entity div.search-result__wrapper")[i]  # div.search-result__actions div button")
                         # pp.pprint(res_item.get_attribute('innerHTML'))
                         link = res_item.find_element_by_css_selector("div > a")
                         profile_link = link.get_attribute("href")
                         self.logger.info("Profile : {}".format(profile_link))
                         user_name = profile_link.split('/')[4]
                         # self.logger.info("user_name : {}".format(user_name))
-                        name = res_item.find_element_by_css_selector("h3 > span > span > span")  # //span/span/span[1]")
+                        name = res_item.find_element_by_css_selector(
+                            "h3 > span > span > span")  # //span/span/span[1]")
                         self.logger.info("Name : {}".format(name.text))
 
-                        if connect_restriction("read", user_name,  self.connect_times, self.logger):
+                        if connect_restriction(
+                            "read", user_name, self.connect_times, self.logger):
                             self.logger.info("already connected")
                             self.already_connected += 1
                             continue
 
                         try:
-                            connect_button = res_item.find_element_by_xpath("//div[3]/div/button[text()='Connect']")
-                            self.logger.info("Connect button found, connecting...")
-                            self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", res_item.find_element_by_xpath('//div[3]/div/button[text()="Connect"]'))
-                            self.logger.info("Clicked {}".format(connect_button.text))
+                            connect_button = res_item.find_element_by_xpath(
+                                "//div[3]/div/button[text()='Connect']")
+                            self.logger.info(
+                                "Connect button found, connecting...")
+                            self.browser.execute_script(
+    "var evt = document.createEvent('MouseEvents');" +
+    "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" +
+    "arguments[0].dispatchEvent(evt);",
+     res_item.find_element_by_xpath('//div[3]/div/button[text()="Connect"]'))
+                            self.logger.info(
+    "Clicked {}".format(
+        connect_button.text))
                             sleep(2)
                         except Exception:
-                            invite_sent_button = res_item.find_element_by_xpath("//div[3]/div/button[text()='Invite Sent']")
-                            self.logger.info("Already {}".format(invite_sent_button.text))
+                            invite_sent_button = res_item.find_element_by_xpath(
+                                "//div[3]/div/button[text()='Invite Sent']")
+                            self.logger.info(
+    "Already {}".format(
+        invite_sent_button.text))
                             self.already_connected += 1
                             continue
 
                         try:
-                            modal = self.browser.find_element_by_css_selector("div.modal-wormhole-content > div")
+                            modal = self.browser.find_element_by_css_selector(
+                                "div.modal-wormhole-content > div")
                             if modal:
                                 try:
-                                    sendnow_or_done_button = modal.find_element_by_xpath("//div[1]/div/section/div/div[2]/button[2]")  # text()='Send now']")
-                                    self.logger.info(sendnow_or_done_button.text)
-                                    if not (sendnow_or_done_button.text == 'Done' or sendnow_or_done_button.text == 'Send now'):
-                                        raise Exception("Send Now or Done button not found")
+                                    sendnow_or_done_button = modal.find_element_by_xpath(
+                                        "//div[1]/div/section/div/div[2]/button[2]")  # text()='Send now']")
+                                    self.logger.info(
+                                        sendnow_or_done_button.text)
+                                    if not (
+                                        sendnow_or_done_button.text == 'Done' or sendnow_or_done_button.text == 'Send now'):
+                                        raise Exception(
+                                            "Send Now or Done button not found")
                                     if sendnow_or_done_button.is_enabled():
                                         (ActionChains(self.browser)
                                          .move_to_element(sendnow_or_done_button)
                                          .click()
                                          .perform())
-                                        self.logger.info("Clicked {}".format(sendnow_or_done_button.text))
+                                        self.logger.info("Clicked {}".format(
+                                            sendnow_or_done_button.text))
                                         connects = connects + 1
                                         self.connected += 1
-                                        connect_restriction("write", user_name, None, self.logger)
+                                        connect_restriction(
+    "write", user_name, None, self.logger)
                                         try:
                                             # update server calls
-                                            update_activity(Settings, 'connects')
+                                            update_activity(
+                                                Settings, 'connects')
                                         except Exception as e:
                                             self.logger.error(e)
                                         sleep(2)
                                     else:
                                         try:
-                                            # TODO: input("find correct close XPATH")
-                                            close_button = modal.find_element_by_xpath("//div[1]/div/section/div/header/button")
+                                            # TODO: input("find correct close
+                                            # XPATH")
+                                            close_button = modal.find_element_by_xpath(
+                                                "//div[1]/div/section/div/header/button")
                                             (ActionChains(self.browser)
                                              .move_to_element(close_button)
                                              .click()
                                              .perform())
-                                            self.logger.info("{} disabled, clicked close".format(sendnow_or_done_button.text))
+                                            self.logger.info(
+    "{} disabled, clicked close".format(
+        sendnow_or_done_button.text))
                                             sleep(2)
                                         except Exception as e:
-                                            self.logger.error("close_button not found, Failed with: {}".format(e))
+                                            self.logger.error(
+    "close_button not found, Failed with: {}".format(e))
                                 except Exception as e:
-                                    self.logger.error("sendnow_or_done_button not found, Failed with: {}".format(e))
+                                    self.logger.error(
+    "sendnow_or_done_button not found, Failed with: {}".format(e))
                             else:
                                 self.logger.info("Popup not found")
                         except Exception as e:
-                            self.logger.error("Popup not found, Failed with: {}".format(e))
+                            self.logger.error(
+    "Popup not found, Failed with: {}".format(e))
                             try:
-                                new_popup_buttons = self.browser.find_elements_by_css_selector("#artdeco-modal-outlet div.artdeco-modal-overlay div.artdeco-modal div.artdeco-modal__actionbar button.artdeco-button")
+                                new_popup_buttons = self.browser.find_elements_by_css_selector(
+                                    "#artdeco-modal-outlet div.artdeco-modal-overlay div.artdeco-modal div.artdeco-modal__actionbar button.artdeco-button")
                                 gotit_button = new_popup_buttons[1]
                                 (ActionChains(self.browser)
                                  .move_to_element(gotit_button)
                                  .click()
                                  .perform())
-                                self.logger.info("---> Clicked {}".format(gotit_button.text))
+                                self.logger.info(
+                                    "---> Clicked {}".format(gotit_button.text))
                                 sleep(2)
                             except Exception as e:
-                                self.logger.error("New Popup also not found, Failed with: {}".format(e))
+                                self.logger.error(
+    "New Popup also not found, Failed with: {}".format(e))
 
-                        self.logger.info("Connects sent in this iteration: {}".format(connects))
+                        self.logger.info(
+    "Connects sent in this iteration: {}".format(connects))
                         delay_random = random.randint(
                                     ceil(sleep_delay * 0.85),
                                     ceil(sleep_delay * 1.14))
                         sleep(delay_random)
                         if connects >= max_connects:
-                            self.logger.info("max_connects({}) for this iteration reached , Returning...".format(max_connects))
+                            self.logger.info(
+    "max_connects({}) for this iteration reached , Returning...".format(max_connects))
                             return
                     except Exception as e:
                         self.logger.error(e)
@@ -645,25 +738,36 @@ class LinkedinPy:
 
             for jc in range(1, 10):
                 sleep(1)
-                self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight*" + str(jc) + "/10);")
+                self.browser.execute_script(
+    "window.scrollTo(0, document.body.scrollHeight*" + str(jc) + "/10);")
 
-            skills_pane = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section")
+            skills_pane = self.browser.find_element_by_css_selector(
+                "div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section")
             if (skills_pane.text.split('\n')[0] == 'Skills & Endorsements'):
                 try:
-                    first_skill_button_icon = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button > li-icon")
+                    first_skill_button_icon = self.browser.find_element_by_css_selector(
+                        "div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button > li-icon")
                     button_type = first_skill_button_icon.get_attribute("type")
                     if button_type == 'plus-icon':
-                        first_skill_button = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button")
-                        self.browser.execute_script("var evt = document.createEvent('MouseEvents');" + "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" + "arguments[0].dispatchEvent(evt);", first_skill_button)
-                        first_skill_title = self.browser.find_element_by_css_selector("div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > p > a > span")
-                        self.logger.info("---> Clicked {}".format(first_skill_title.text))
+                        first_skill_button = self.browser.find_element_by_css_selector(
+                            "div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > div > button")
+                        self.browser.execute_script(
+    "var evt = document.createEvent('MouseEvents');" +
+    "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" +
+    "arguments[0].dispatchEvent(evt);",
+     first_skill_button)
+                        first_skill_title = self.browser.find_element_by_css_selector(
+                            "div.profile-detail > div.pv-deferred-area > div > section.pv-profile-section.pv-skill-categories-section > ol > li > div > div > p > a > span")
+                        self.logger.info(
+                            "---> Clicked {}".format(first_skill_title.text))
                         delay_random = random.randint(
                                     ceil(sleep_delay * 0.85),
                                     ceil(sleep_delay * 1.14))
                         sleep(delay_random)
                         return True
                     else:
-                        self.logger.info('button_type already {}'.format(button_type))
+                        self.logger.info(
+    'button_type already {}'.format(button_type))
                         return False
                 except Exception as e:
                     self.logger.error(e)
@@ -689,7 +793,9 @@ class LinkedinPy:
         if quota_supervisor(Settings, "connects") == "jump":
             return  # False, "jumped"
 
-        self.logger.info("Searching for: {} {} {}".format(query, city_code, school_code))
+        self.logger.info(
+    "Searching for: {} {} {}".format(
+        query, city_code, school_code))
         search_url = "https://www.linkedin.com/search/results/people/?"
         if city_code:
             search_url = search_url + "&facetGeoRegion=" + city_code
@@ -707,7 +813,8 @@ class LinkedinPy:
                 temp_search_url = search_url + "&page=" + str(st)
                 web_address_navigator(Settings, self.browser, temp_search_url)
                 self.logger.info("Testing page:".format(st))
-                result_items = self.browser.find_elements_by_css_selector("div.search-result__wrapper")
+                result_items = self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper")
                 if len(result_items) > 0:
                     break
                 trial = trial + 1
@@ -719,22 +826,30 @@ class LinkedinPy:
             try:
                 temp_search_url = search_url + "&page=" + str(page_no)
                 if page_no > st and st > 1:
-                    web_address_navigator(Settings, self.browser, temp_search_url)
+                    web_address_navigator(
+    Settings, self.browser, temp_search_url)
                 self.logger.info("Starting page: {}".format(page_no))
 
                 for jc in range(2, 11):
                     sleep(1)
-                    self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
+                    self.browser.execute_script(
+    "window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
 
-                result_items = self.browser.find_elements_by_css_selector("div.search-result__wrapper")
+                result_items = self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper")
 
                 # print(result_items)
                 for result_item in result_items:
                     try:
-                        link = result_item.find_element_by_css_selector("div > a")
-                        self.logger.info("Profile : {}".format(link.get_attribute("href")))
-                        collected_profile_links.append(link.get_attribute("href"))
-                        name = result_item.find_element_by_css_selector("h3 > span > span > span")
+                        link = result_item.find_element_by_css_selector(
+                            "div > a")
+                        self.logger.info(
+    "Profile : {}".format(
+        link.get_attribute("href")))
+                        collected_profile_links.append(
+                            link.get_attribute("href"))
+                        name = result_item.find_element_by_css_selector(
+                            "h3 > span > span > span")
                         self.logger.info("Name : {}".format(name.text))
                     except Exception as e:
                         self.logger.error(e)
@@ -742,12 +857,14 @@ class LinkedinPy:
                 self.logger.error(e)
 
             for collected_profile_link in collected_profile_links:
-                if self.endorse(collected_profile_link, sleep_delay=sleep_delay):
+                if self.endorse(collected_profile_link,
+                                sleep_delay=sleep_delay):
                     self.endorsements += 1
                 else:
                     self.already_endorsements += 1
                 if self.endorsements >= max_endorsements:
-                    self.logger.info("max_endorsements({}) for this iteration reached , Returning...".format(max_endorsements))
+                    self.logger.info(
+    "max_endorsements({}) for this iteration reached , Returning...".format(max_endorsements))
                     return
 
             self.logger.info("============Next Page==============")

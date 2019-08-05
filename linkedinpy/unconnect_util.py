@@ -30,7 +30,8 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             else:
                 current_data = {}
 
-            connect_data = {user_data[1]: user_data[2] for user_data in data or []}
+            connect_data = {user_data[1]: user_data[2]
+                            for user_data in data or []}
             current_data[profile_name] = connect_data
 
             # dump the fresh connect data to a local human readable JSON
@@ -89,7 +90,7 @@ def connect_restriction(operation, username, limit, logger):
 
                 else:
                     exceed_msg = "" if connect_data[
-                                           "times"] == limit else "more than "
+                        "times"] == limit else "more than "
                     logger.info("---> {} has already been connected {}{} times"
                                 .format(username, exceed_msg, str(limit)))
                     return True

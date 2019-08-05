@@ -47,7 +47,11 @@ def get_database(Settings, make=False):
     if not os.path.isfile(address) or make:
         create_database(address, logger, name)
 
-    id = get_profile(Settings, name, address, logger) if id is None or make else id
+    id = get_profile(
+        Settings,
+        name,
+        address,
+        logger) if id is None or make else id
 
     return address, id
 

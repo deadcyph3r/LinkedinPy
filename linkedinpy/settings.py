@@ -28,9 +28,11 @@ class Settings:
               else "linux")
 
     specific_chromedriver = "chromedriver_{}".format(OS_ENV)
-    chromedriver_location = localize_path("LinkedinPy", "assets", specific_chromedriver)
+    chromedriver_location = localize_path(
+        "LinkedinPy", "assets", specific_chromedriver)
     if (not chromedriver_location or not path_exists(chromedriver_location)):
-        chromedriver_location = localize_path("LinkedinPy", "assets", "chromedriver")
+        chromedriver_location = localize_path(
+            "LinkedinPy", "assets", "chromedriver")
 
     # minimum supported version of chromedriver
     chromedriver_min_version = 2.36
@@ -66,7 +68,9 @@ class Settings:
     use_firefox = None
     IS_RUNNING = False
 
-    WORKSPACE = {"name": "LinkedinPy", "path": environmental_variables.get("HOME")}
+    WORKSPACE = {
+        "name": "LinkedinPy",
+        "path": environmental_variables.get("HOME")}
 
     DATABASE_LOCATION = localize_path("LinkedinPy", "db", "linkedinpy.db")
 

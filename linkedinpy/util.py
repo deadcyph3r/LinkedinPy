@@ -248,7 +248,8 @@ def interruption_handler(threaded=False, SIG_type=signal.SIGINT,
             signal.signal(SIG_type, original_handler)
 
 
-def highlight_print(Settings, username=None, message=None, priority=None, level=None, logger=None):
+def highlight_print(Settings, username=None, message=None,
+                    priority=None, level=None, logger=None):
     """ Print headers in a highlighted style """
     # can add other highlighters at other priorities enriching this function
 
@@ -364,7 +365,7 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
         ec_name = "page fully loaded"
         condition = (lambda browser: browser.execute_script(
             "return document.readyState")
-                                     in ["complete" or "loaded"])
+            in ["complete" or "loaded"])
 
     elif track == "SO":
         ec_name = "staleness of"
@@ -379,7 +380,8 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
 
     except TimeoutException:
         if notify is True:
-            logger.info("Timed out with failure while explicitly waiting until {}!\n".format(ec_name))
+            logger.info(
+                "Timed out with failure while explicitly waiting until {}!\n".format(ec_name))
         return False
 
     return result
