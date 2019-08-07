@@ -123,7 +123,7 @@ class LinkedinPy:
         self.connected = 0
         self.already_connected = 0
         self.endorsements = 0
-        self.alrady_endorsements = 0
+        self.already_endorsements = 0
         self.unconnected = 0
         self.connected_by = 0
         self.connecting_num = 0
