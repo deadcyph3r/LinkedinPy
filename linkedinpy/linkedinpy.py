@@ -868,7 +868,7 @@ class LinkedinPy:
                     return
 
             self.logger.info("============Next Page==============")
-       self.logger.info("===Finishing search_and_endorse===")
+        self.logger.info("===Finishing search_and_endorse===")
 
     # EASY APPLY CODE STARTS
     def applications_loop(self, max_applications):
