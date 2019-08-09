@@ -119,6 +119,7 @@ class LinkedinPy:
         self.already_liked = 0
         self.liked_comments = 0
         self.commented = 0
+        self.advice_seeked = 0
         self.replied_to_messages = 0
         self.connected = 0
         self.already_connected = 0
@@ -236,6 +237,54 @@ class LinkedinPy:
                 self.logger.warning(
                     'Unable to save account progress, skipping data update')
         return self
+
+
+    def get_career_advice(self, sleep_delay=6):
+        self.logger.info("===Starting get_career_advice===")
+        url = "https://www.linkedin.com/opportunities/career-advice/get-advice"
+        web_address_navigator(Settings, self.browser, url)
+
+        advisor_select_elements = self.browser.find_elements_by_css_selector(
+            "button.op-recommendation-list-item__current")
+        delay_random = random.randint(
+                    ceil(sleep_delay * 0.85),
+                    ceil(sleep_delay * 1.14))
+
+        for i in range(0, len(advisor_select_elements)):
+            try:
+                close_button = self.browser.find_element_by_css_selector(
+                    "button.overlay.close_conversation_window")
+                close_button.click()
+                self.logger.info("close button and clicked on")
+                sleep(2)
+            except Exception as e:
+                self.logger.info("No close button, lets move on")
+
+            advisor_select_element = self.browser.find_elements_by_css_selector(
+                "button.op-recommendation-list-item__current")[i]
+
+            advisor_select_element.click()
+            sleep(delay_random)
+            try:
+                start_conversation = self.browser.find_element_by_css_selector(
+                    "button.op-recommendation-card__message")
+                self.logger.info(start_conversation.text)
+                start_conversation.click()
+                sleep(2)
+
+                send_button = self.browser.find_element_by_css_selector(
+                    "button.msg-form__send-button")
+                send_button.click()
+                sleep(2)
+
+                self.advice_seeked += 1
+            except Exception:
+                self.logger.error("No start_conversation or send_button found {}".format(e))
+            self.logger.info("======")
+            sleep(delay_random)
+
+        self.logger.info("===End of get_career_advice===")
+
 
     def withdraw_old_invitations(self,
                                  skip_pages=10,
@@ -1280,6 +1329,7 @@ class LinkedinPy:
                  self.connected, self.already_connected,
                  self.unconnected,
                  self.replied_to_messages,
+                 self.advice_seeked,
                  self.inap_img,
                  self.not_valid_users]
 
@@ -1311,6 +1361,7 @@ class LinkedinPy:
                 "\t|> ENDORSED {} users  |  ALREADY ENDORSED: {}\n"
                 "\t|> WITHDRAWN {} connect requests\n"
                 "\t|> REPLIED to {} messages\n"
+                "\t|> ADVICE SEEKED from {} users\n"
                 "\t|> LIKED {} comments\n"
                 "\t|> INAPPROPRIATE images: {}\n"
                 "\t|> NOT VALID users: {}\n"
@@ -1324,6 +1375,7 @@ class LinkedinPy:
                         self.already_endorsements,
                         self.unconnected,
                         self.replied_to_messages,
+                        self.advice_seeked,
                         self.liked_comments,
                         self.inap_img,
                         self.not_valid_users,

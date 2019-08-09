@@ -19,6 +19,7 @@ pip install -r requirements.txt
   - [withdraw old invitations](#withdraw-old-invitations)
   - [jobs easy apply](#jobs-easy-apply)
   - [auto reply messages with the first suggestion](#auto-reply-messages-with-the-first-suggestion)
+  - [get career advice](#get_career_advice)
 
 ##  Download APIs
   - [save 1st connects to db](#save-1st-connects-to-db)
@@ -102,6 +103,16 @@ For now the API just clicks the first suggestion for each of the messages, (Plan
 
  with smart_run(session):
     session.auto_reply_messages_with_the_first_suggestion()
+ ```
+
+### get career advice
+clicks the recomended advisors default conversation messages, (Plans to integrate intelligence later. Use this with causion incase you want to, this was created just for fun too)
+
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+    session.get_career_advice()
  ```
 
 
