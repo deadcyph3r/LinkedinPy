@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ```
 
 ##  Interact APIs
-  - [search and connect](#search-and-connect)
+  - [search and connect with filters(eg city, school, relationship code)](#search-and-connect)
   - [search and connect having shared connections](#search-and-connect-having-shared-connections)
   - [connect from suggested](#connect-from-suggested)
   - [search and endorse](#search-and-endorse)
@@ -26,7 +26,7 @@ pip install -r requirements.txt
   - [save 1st connects to db](#save-1st-connects-to-db)
   - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
 
-### search and connect
+### search and connect with filters(city, school, relationship code)
  
 It sends invite to your 2nd or 3rd degree connections fetched from linkedin search
 
@@ -44,7 +44,7 @@ It sends invite to your 2nd or 3rd degree connections fetched from linkedin sear
 
 ### search and connect having shared connections
  
-It sends invite to your 2nd connections without additoonal filters of of city or school but has a threshold on shared connections. This is more preferred over search_and_connect when you have exaused the search limits on linkedin
+It sends invite to your 2nd connections without additonal filters of of city or school but has a threshold on number of minimum shared connections. This is more preferred over search_and_connect() API when you are not too choosy about filters or have exhaused the search limits on linkedin
 
 ```python
  session = LinkedinPy()
