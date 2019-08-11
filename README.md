@@ -14,6 +14,7 @@ pip install -r requirements.txt
 
 ##  Interact APIs
   - [search and connect](#search-and-connect)
+  - [search and connect having shared connections](#search-and-connect-having-shared-connections)
   - [connect from suggested](#connect-from-suggested)
   - [search and endorse](#search-and-endorse)
   - [withdraw old invitations](#withdraw-old-invitations)
@@ -39,6 +40,17 @@ It sends invite to your 2nd or 3rd degree connections fetched from linkedin sear
                     city_code="%5B%22in%3A6508%22%5D",
                     school_code="%5B%2213497%22%5D"
                 )
+ ```
+
+### search and connect having shared connections
+ 
+It sends invite to your 2nd connections without additoonal filters of of city or school but has a threshold on shared connections. This is more preferred over search_and_connect when you have exaused the search limits on linkedin
+
+```python
+ session = LinkedinPy()
+
+ with smart_run(session):
+     session.search_and_connect_having_shared_connections(query="founder", connection_threshold=100)
  ```
 
 ### connect from suggested

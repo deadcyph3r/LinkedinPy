@@ -776,8 +776,221 @@ class LinkedinPy:
             except Exception as e:
                 self.logger.error(e)
             self.logger.info("============Next Page==============")
-            return connects
         self.logger.info("===Finishing search_and_connect===")
+        return connects
+
+
+    def search_and_connect_having_shared_connections(self,
+                           query,
+                           connection_threshold=25,
+                           random_start=True,
+                           max_pages=200,
+                           max_connects=25,
+                           sleep_delay=6):
+        """ search linkedin and connect from a given profile """
+        self.logger.info("===Starting search_and_connect_having_shared_connections===")
+        if quota_supervisor(Settings, "connects") == "jump":
+            return 0
+
+        self.logger.info("Searching for: query={}".format(query))
+        connects = 0
+        # prev_connects = -1
+        search_url = "https://www.linkedin.com/search/results/people/?facetNetwork=%5B%22S%22%5D"
+        search_url = search_url + "&keywords=" + query
+        search_url = search_url + "&origin=" + "FACETED_SEARCH"
+
+        temp_search_url = search_url + "&page=1"
+        if self.test_page(search_url=temp_search_url, page_no=1) is False:
+            self.logger.info(
+                "============Definitely no Result, Next Query==============")
+            return 0
+
+        if random_start:
+            trial = 0
+            st = 5
+            while True and trial < 5 and st > 1:
+                st = random.randint(1, st - 1)
+                temp_search_url = search_url + "&page=" + str(st)
+                if self.test_page(search_url=temp_search_url, page_no=st):
+                    break
+                trial = trial + 1
+        else:
+            st = 1
+        for page_no in list(range(st, st + max_pages)):
+
+            # if prev_connects == connects:
+            #     self.logger.info(
+            #         "============Limits might have exceeded or all Invites pending from this page(let's exit either case)==============")
+            #     break
+            # else:
+            #     prev_connects = connects
+
+            try:
+                temp_search_url = search_url + "&page=" + str(page_no)
+                if page_no > st and st > 1:
+                    web_address_navigator(
+    Settings, self.browser, temp_search_url)
+                self.logger.info("Starting page: {}".format(page_no))
+
+                for jc in range(2, 11):
+                    sleep(1)
+                    self.browser.execute_script(
+    "window.scrollTo(0, document.body.scrollHeight/" + str(jc) + "-100);")
+
+                if len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper")) == 0:
+                    self.logger.info(
+                        "============Last Page Reached or asking for Premium membership==============")
+                    break
+                for i in range(0, len(self.browser.find_elements_by_css_selector(
+                    "div.search-result__wrapper"))):
+                    try:
+                        res_item = self.browser.find_elements_by_css_selector(
+                            "li.search-result div.search-entity div.search-result__wrapper")[i]  # div.search-result__actions div button")
+                        # pp.pprint(res_item.get_attribute('innerHTML'))
+                        link = res_item.find_element_by_css_selector("div > a")
+                        profile_link = link.get_attribute("href")
+                        self.logger.info("Profile : {}".format(profile_link))
+                        user_name = profile_link.split('/')[4]
+                        # self.logger.info("user_name : {}".format(user_name))
+                        name = res_item.find_element_by_css_selector(
+                            "h3 > span > span > span")  # //span/span/span[1]")
+                        self.logger.info("Name : {}".format(name.text))
+
+                        if connect_restriction(
+                            "read", user_name, self.connect_times, self.logger):
+                            self.logger.info("already connected")
+                            self.already_connected += 1
+                            continue
+
+                        try:
+                            shared_conn_links = res_item.find_elements_by_css_selector("div.search-result__social-proof a.search-result__social-proof-link")
+
+                            conns = 0
+                            for shared_conn_link in shared_conn_links:
+                                # self.logger.info("shared connection link found: {}".format(shared_conn_link.text))
+                                numbers = [int(s) for s in shared_conn_link.text.split() if s.isdigit()]
+                                if len(numbers) > 0:
+                                    conns += numbers[0]
+                                else:
+                                    conns += 1
+                            self.logger.info("Total shared connection: {}".format(conns))
+                            sleep(1)
+
+                            if conns < connection_threshold:
+                                continue
+
+                            connect_button = res_item.find_element_by_xpath(
+                                "//div[3]/div/button[text()='Connect']")
+                            self.logger.info(
+                                "Connect button found, connecting...")
+                            self.browser.execute_script(
+    "var evt = document.createEvent('MouseEvents');" +
+    "evt.initMouseEvent('click',true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0,null);" +
+    "arguments[0].dispatchEvent(evt);",
+     res_item.find_element_by_xpath('//div[3]/div/button[text()="Connect"]'))
+                            self.logger.info(
+    "Clicked {}".format(
+        connect_button.text))
+                            sleep(2)
+
+                        except Exception:
+                            invite_sent_button = res_item.find_element_by_xpath(
+                                "//div[3]/div/button[text()='Invite Sent']")
+                            self.logger.info(
+    "Already {}".format(
+        invite_sent_button.text))
+                            self.already_connected += 1
+                            continue
+
+                        try:
+                            modal = self.browser.find_element_by_css_selector(
+                                "div.modal-wormhole-content > div")
+                            if modal:
+                                try:
+                                    sendnow_or_done_button = modal.find_element_by_xpath(
+                                        "//div[1]/div/section/div/div[2]/button[2]")  # text()='Send now']")
+                                    self.logger.info(
+                                        sendnow_or_done_button.text)
+                                    if not (
+                                        sendnow_or_done_button.text == 'Done' or sendnow_or_done_button.text == 'Send now'):
+                                        raise Exception(
+                                            "Send Now or Done button not found")
+                                    if sendnow_or_done_button.is_enabled():
+                                        (ActionChains(self.browser)
+                                         .move_to_element(sendnow_or_done_button)
+                                         .click()
+                                         .perform())
+                                        self.logger.info("Clicked {}".format(
+                                            sendnow_or_done_button.text))
+                                        connects = connects + 1
+                                        self.connected += 1
+                                        connect_restriction(
+    "write", user_name, None, self.logger)
+                                        try:
+                                            # update server calls
+                                            update_activity(
+                                                Settings, 'connects')
+                                        except Exception as e:
+                                            self.logger.error(e)
+                                        sleep(2)
+                                    else:
+                                        try:
+                                            # TODO: input("find correct close
+                                            # XPATH")
+                                            close_button = modal.find_element_by_xpath(
+                                                "//div[1]/div/section/div/header/button")
+                                            (ActionChains(self.browser)
+                                             .move_to_element(close_button)
+                                             .click()
+                                             .perform())
+                                            self.logger.info(
+    "{} disabled, clicked close".format(
+        sendnow_or_done_button.text))
+                                            sleep(2)
+                                        except Exception as e:
+                                            self.logger.error(
+    "close_button not found, Failed with: {}".format(e))
+                                except Exception as e:
+                                    self.logger.error(
+    "sendnow_or_done_button not found, Failed with: {}".format(e))
+                            else:
+                                self.logger.info("Popup not found")
+                        except Exception as e:
+                            self.logger.error(
+    "Popup not found, Failed with: {}".format(e))
+                            try:
+                                new_popup_buttons = self.browser.find_elements_by_css_selector(
+                                    "#artdeco-modal-outlet div.artdeco-modal-overlay div.artdeco-modal div.artdeco-modal__actionbar button.artdeco-button")
+                                gotit_button = new_popup_buttons[1]
+                                (ActionChains(self.browser)
+                                 .move_to_element(gotit_button)
+                                 .click()
+                                 .perform())
+                                self.logger.info(
+                                    "---> Clicked {}".format(gotit_button.text))
+                                sleep(2)
+                            except Exception as e:
+                                self.logger.error(
+    "New Popup also not found, Failed with: {}".format(e))
+
+                        self.logger.info(
+    "Connects sent in this iteration: {}".format(connects))
+                        delay_random = random.randint(
+                                    ceil(sleep_delay * 0.85),
+                                    ceil(sleep_delay * 1.14))
+                        sleep(delay_random)
+                        if connects >= max_connects:
+                            self.logger.info(
+    "max_connects({}) for this iteration reached , Returning...".format(max_connects))
+                            return
+                    except Exception as e:
+                        self.logger.error(e)
+            except Exception as e:
+                self.logger.error(e)
+            self.logger.info("============Next Page==============")
+        self.logger.info("===Finishing search_and_connect_having_shared_connections===")
+        return connects
 
     def endorse(self,
                 profile_link,
