@@ -807,7 +807,7 @@ class LinkedinPy:
 
         if random_start:
             trial = 0
-            st = 5
+            st = 10
             while True and trial < 5 and st > 1:
                 st = random.randint(1, st - 1)
                 temp_search_url = search_url + "&page=" + str(st)
