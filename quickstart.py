@@ -72,7 +72,7 @@ with smart_run(session):
     for connection_relationship_code in connection_relationship_codes:
         for location_code in location_codes_today:
             for school_code in school_codes_today:
-                session.search_and_connect(
+                session.search_and_connect_with_filters(
                     query="founder",
                     connection_relationship_code="%5B%22" + connection_relationship_code + "%22%5D",
                     city_code="%5B%22" + country_code + "%" + location_code + "%22%5D",

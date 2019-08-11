@@ -34,7 +34,7 @@ It sends invite to your 2nd or 3rd degree connections fetched from linkedin sear
  session = LinkedinPy()
 
  with smart_run(session):
-     session.search_and_connect(
+     session.search_and_connect_with_filters(
                     query="founder",
                     connection_relationship_code="%5B%22S%22%5D",
                     city_code="%5B%22in%3A6508%22%5D",
