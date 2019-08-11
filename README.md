@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ```
 
 ##  Interact APIs
-  - [search and connect with filters(eg city, school, relationship code)](#search-and-connect-eg-city-school-relationship-code)
+  - [search and connect with filters(eg city, school, relationship code)](#search-and-connect-with-filterseg-city-school-relationship-code)
   - [search and connect having shared connections](#search-and-connect-having-shared-connections)
   - [connect from suggested](#connect-from-suggested)
   - [search and endorse](#search-and-endorse)
