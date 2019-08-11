@@ -26,7 +26,7 @@ pip install -r requirements.txt
   - [save 1st connects to db](#save-1st-connects-to-db)
   - [search 1st connects and save to db](#search-1st-connects-and-save-to-db)
 
-### search and connect with filters(city, school, relationship code)
+### search and connect with filters(eg city, school, relationship code)
  
 It sends invite to your 2nd or 3rd degree connections fetched from linkedin search
 
