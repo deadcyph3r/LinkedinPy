@@ -88,3 +88,9 @@ with smart_run(session):
             )
 
     session.withdraw_old_invitations()
+
+    session.jobs_easy_apply(
+            position='Data Scientist',
+            location='United States')
+
+    session.get_career_advice()
