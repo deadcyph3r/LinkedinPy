@@ -17,20 +17,20 @@ from socialcommons.time_util import sleep, sleep_actual
 from .database_engine import get_database
 
 
-def getUserData(Settings, query,
-                browser,
-                basequery="return window._sharedData.entry_data.ProfilePage["
-                          "0]."):
+def getUserData(
+    Settings,
+    query,
+    browser,
+    basequery="return window._sharedData.entry_data.ProfilePage[" "0].",
+):
     try:
-        data = browser.execute_script(
-            basequery + query)
+        data = browser.execute_script(basequery + query)
         return data
     except WebDriverException:
         browser.execute_script("location.reload()")
         update_activity(Settings)
 
-        data = browser.execute_script(
-            basequery + query)
+        data = browser.execute_script(basequery + query)
         return data
 
 
@@ -48,18 +48,22 @@ def update_activity(Settings, action="server_calls"):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         # collect today data
-        cur.execute("SELECT * FROM recordActivity WHERE profile_id=:var AND "
-                    "STRFTIME('%Y-%m-%d %H', created) == STRFTIME('%Y-%m-%d "
-                    "%H', 'now', 'localtime')",
-                    {"var": id})
+        cur.execute(
+            "SELECT * FROM recordActivity WHERE profile_id=:var AND "
+            "STRFTIME('%Y-%m-%d %H', created) == STRFTIME('%Y-%m-%d "
+            "%H', 'now', 'localtime')",
+            {"var": id},
+        )
         data = cur.fetchone()
 
         if data is None:
             # create a new record for the new day
-            cur.execute("INSERT INTO recordActivity VALUES "
-                        "(?, 0, 0, 0, 0, 1, STRFTIME('%Y-%m-%d %H:%M:%S', "
-                        "'now', 'localtime'))",
-                        (id,))
+            cur.execute(
+                "INSERT INTO recordActivity VALUES "
+                "(?, 0, 0, 0, 0, 1, STRFTIME('%Y-%m-%d %H:%M:%S', "
+                "'now', 'localtime'))",
+                (id,),
+            )
 
         else:
             # sqlite3.Row' object does not support item assignment -> so,
@@ -75,16 +79,27 @@ def update_activity(Settings, action="server_calls"):
                 data["server_calls"] += 1
                 quota_supervisor(Settings, "server_calls", update=True)
 
-            sql = ("UPDATE recordActivity set likes = ?, comments = ?, "
-                   "follows = ?, unfollows = ?, server_calls = ?, "
-                   "created = STRFTIME('%Y-%m-%d %H:%M:%S', 'now', "
-                   "'localtime') "
-                   "WHERE  profile_id=? AND STRFTIME('%Y-%m-%d %H', created) "
-                   "== "
-                   "STRFTIME('%Y-%m-%d %H', 'now', 'localtime')")
+            sql = (
+                "UPDATE recordActivity set likes = ?, comments = ?, "
+                "follows = ?, unfollows = ?, server_calls = ?, "
+                "created = STRFTIME('%Y-%m-%d %H:%M:%S', 'now', "
+                "'localtime') "
+                "WHERE  profile_id=? AND STRFTIME('%Y-%m-%d %H', created) "
+                "== "
+                "STRFTIME('%Y-%m-%d %H', 'now', 'localtime')"
+            )
 
-            cur.execute(sql, (data['likes'], data['comments'], data['follows'],
-                              data['unfollows'], data['server_calls'], id))
+            cur.execute(
+                sql,
+                (
+                    data["likes"],
+                    data["comments"],
+                    data["follows"],
+                    data["unfollows"],
+                    data["server_calls"],
+                    id,
+                ),
+            )
 
         # commit the latest changes
         conn.commit()
@@ -126,8 +141,10 @@ def click_element(browser, element, tryNum=0):
         if tryNum == 0:
             # try scrolling the element into view
             browser.execute_script(
-                "document.getElementsByClassName('" + element.get_attribute(
-                    "class") + "')[0].scrollIntoView({ inline: 'center' });")
+                "document.getElementsByClassName('"
+                + element.get_attribute("class")
+                + "')[0].scrollIntoView({ inline: 'center' });"
+            )
 
         elif tryNum == 1:
             # well, that didn't work, try scrolling to the top and then
@@ -137,15 +154,16 @@ def click_element(browser, element, tryNum=0):
         elif tryNum == 2:
             # that didn't work either, try scrolling to the bottom and then
             # clicking again
-            browser.execute_script(
-                "window.scrollTo(0,document.body.scrollHeight);")
+            browser.execute_script("window.scrollTo(0,document.body.scrollHeight);")
 
         else:
             # try `execute_script` as a last resort
             # print("attempting last ditch effort for click, `execute_script`")
             browser.execute_script(
-                "document.getElementsByClassName('" + element.get_attribute(
-                    "class") + "')[0].click()")
+                "document.getElementsByClassName('"
+                + element.get_attribute("class")
+                + "')[0].click()"
+            )
             # update server calls after last click attempt by JS
             update_activity()
             # end condition for the recursive function
@@ -173,13 +191,14 @@ def format_number(number):
 
     :return: int
     """
-    formatted_num = number.replace(',', '')
-    formatted_num = re.sub(r'(k)$', '00' if '.' in formatted_num else '000',
-                           formatted_num)
-    formatted_num = re.sub(r'(m)$',
-                           '00000' if '.' in formatted_num else '000000',
-                           formatted_num)
-    formatted_num = formatted_num.replace('.', '')
+    formatted_num = number.replace(",", "")
+    formatted_num = re.sub(
+        r"(k)$", "00" if "." in formatted_num else "000", formatted_num
+    )
+    formatted_num = re.sub(
+        r"(m)$", "00000" if "." in formatted_num else "000000", formatted_num
+    )
+    formatted_num = formatted_num.replace(".", "")
     return int(formatted_num)
 
 
@@ -196,17 +215,17 @@ def web_address_navigator(Settings, browser, link):
     page_type = None  # file or directory
 
     # remove slashes at the end to compare efficiently
-    if current_url is not None and current_url.endswith('/'):
+    if current_url is not None and current_url.endswith("/"):
         current_url = current_url[:-1]
 
-    if link.endswith('/'):
+    if link.endswith("/"):
         link = link[:-1]
         page_type = "dir"  # slash at the end is a directory
 
-    new_navigation = (current_url != link)
+    new_navigation = current_url != link
 
     if current_url is None or new_navigation:
-        link = link + '/' if page_type == "dir" else link  # directory links
+        link = link + "/" if page_type == "dir" else link  # directory links
         # navigate faster
 
         while True:
@@ -224,14 +243,21 @@ def web_address_navigator(Settings, browser, link):
                         "but failed out of a timeout!\n\t{}".format(
                             total_timeouts,
                             str(link).encode("utf-8"),
-                            str(exc).encode("utf-8")))
+                            str(exc).encode("utf-8"),
+                        )
+                    )
                 total_timeouts += 1
                 sleep(2)
 
 
 @contextmanager
-def interruption_handler(threaded=False, SIG_type=signal.SIGINT,
-                         handler=signal.SIG_IGN, notify=None, logger=None):
+def interruption_handler(
+    threaded=False,
+    SIG_type=signal.SIGINT,
+    handler=signal.SIG_IGN,
+    notify=None,
+    logger=None,
+):
     """ Handles external interrupt, usually initiated by the user like
     KeyboardInterrupt with CTRL+C """
     if notify is not None and logger is not None:
@@ -248,14 +274,14 @@ def interruption_handler(threaded=False, SIG_type=signal.SIGINT,
             signal.signal(SIG_type, original_handler)
 
 
-def highlight_print(Settings, username=None, message=None,
-                    priority=None, level=None, logger=None):
+def highlight_print(
+    Settings, username=None, message=None, priority=None, level=None, logger=None
+):
     """ Print headers in a highlighted style """
     # can add other highlighters at other priorities enriching this function
 
     # find the number of chars needed off the length of the logger message
-    output_len = (28 + len(username) + 3 + len(message) if logger
-                  else len(message))
+    output_len = 28 + len(username) + 3 + len(message) if logger else len(message)
     show_logs = Settings.show_logs
 
     if priority in ["initialization", "end"]:
@@ -277,7 +303,7 @@ def highlight_print(Settings, username=None, message=None,
         # E.g.:    Starting to interact by users..
         # """"""""""""""""""""""""""""""""""""""""""""""""
         upper_char = "_"
-        lower_char = "\""
+        lower_char = '"'
 
     elif priority == "user iteration":
         # ::::::::::::::::::::::::::::::::::::::::::::::::
@@ -297,11 +323,8 @@ def highlight_print(Settings, username=None, message=None,
         upper_char = " ._. "
         lower_char = None
 
-    if (upper_char
-            and (show_logs
-                 or priority == "workspace")):
-        print("\n{}".format(
-            upper_char * int(ceil(output_len / len(upper_char)))))
+    if upper_char and (show_logs or priority == "workspace"):
+        print("\n{}".format(upper_char * int(ceil(output_len / len(upper_char)))))
 
     if level == "info":
         if logger:
@@ -321,11 +344,8 @@ def highlight_print(Settings, username=None, message=None,
         else:
             print(message)
 
-    if (lower_char
-            and (show_logs
-                 or priority == "workspace")):
-        print("{}".format(
-            lower_char * int(ceil(output_len / len(lower_char)))))
+    if lower_char and (show_logs or priority == "workspace"):
+        print("{}".format(lower_char * int(ceil(output_len / len(lower_char)))))
 
 
 def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
@@ -349,9 +369,13 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
         elem_address, find_method = ec_params
         ec_name = "visibility of element located"
 
-        find_by = (By.XPATH if find_method == "XPath" else
-                   By.CSS_SELECTOR if find_method == "CSS" else
-                   By.CLASS_NAME)
+        find_by = (
+            By.XPATH
+            if find_method == "XPath"
+            else By.CSS_SELECTOR
+            if find_method == "CSS"
+            else By.CLASS_NAME
+        )
         locator = (find_by, elem_address)
         condition = ec.visibility_of_element_located(locator)
 
@@ -363,9 +387,9 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
 
     elif track == "PFL":
         ec_name = "page fully loaded"
-        condition = (lambda browser: browser.execute_script(
-            "return document.readyState")
-            in ["complete" or "loaded"])
+        condition = lambda browser: browser.execute_script(
+            "return document.readyState"
+        ) in ["complete" or "loaded"]
 
     elif track == "SO":
         ec_name = "staleness of"
@@ -381,7 +405,10 @@ def explicit_wait(browser, track, ec_params, logger, timeout=35, notify=True):
     except TimeoutException:
         if notify is True:
             logger.info(
-                "Timed out with failure while explicitly waiting until {}!\n".format(ec_name))
+                "Timed out with failure while explicitly waiting until {}!\n".format(
+                    ec_name
+                )
+            )
         return False
 
     return result
@@ -436,12 +463,13 @@ def save_account_progress(Settings, browser, username, logger):
         :username: Account to be updated
         :logger: library to log actions
     """
-    logger.info('Saving account progress...')
+    logger.info("Saving account progress...")
     connecters, connecting = get_relationship_counts(browser, username, logger)
 
     # save profile total posts
-    posts = getUserData(Settings, "graphql.user.edge_owner_to_timeline_media.count",
-                        browser)
+    posts = getUserData(
+        Settings, "graphql.user.edge_owner_to_timeline_media.count", browser
+    )
 
     try:
         # DB instance
@@ -450,23 +478,27 @@ def save_account_progress(Settings, browser, username, logger):
         with conn:
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
-            sql = ("INSERT INTO accountsProgress (profile_id, connecters, "
-                   "connecting, total_posts, created, modified) "
-                   "VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%S'), "
-                   "strftime('%Y-%m-%d %H:%M:%S'))")
+            sql = (
+                "INSERT INTO accountsProgress (profile_id, connecters, "
+                "connecting, total_posts, created, modified) "
+                "VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%S'), "
+                "strftime('%Y-%m-%d %H:%M:%S'))"
+            )
             cur.execute(sql, (id, connecters, connecting, posts))
             conn.commit()
     except Exception:
-        logger.exception('message')
+        logger.exception("message")
 
 
 def parse_cli_args():
     """ Parse arguments passed by command line interface """
 
-    AP_kwargs = dict(prog="InstaPy",
-                     description="Parse InstaPy constructor's arguments",
-                     epilog="And that's how you'd pass arguments by CLI..",
-                     conflict_handler="resolve")
+    AP_kwargs = dict(
+        prog="InstaPy",
+        description="Parse InstaPy constructor's arguments",
+        epilog="And that's how you'd pass arguments by CLI..",
+        conflict_handler="resolve",
+    )
     if python_version() < "3.5":
         parser = CustomizedArgumentParser(**AP_kwargs)
     else:
@@ -476,39 +508,59 @@ def parse_cli_args():
     """ Flags that REQUIRE a value once added
     ```python quickstart.py --username abc```
     """
+    parser.add_argument("-u", "--username", help="Username", type=str, metavar="abc")
+    parser.add_argument("-p", "--password", help="Password", type=str, metavar="123")
     parser.add_argument(
-        "-u", "--username", help="Username", type=str, metavar="abc")
+        "-pd", "--page-delay", help="Implicit wait", type=int, metavar=25
+    )
     parser.add_argument(
-        "-p", "--password", help="Password", type=str, metavar="123")
+        "-pa", "--proxy-address", help="Proxy address", type=str, metavar="192.168.1.1"
+    )
     parser.add_argument(
-        "-pd", "--page-delay", help="Implicit wait", type=int, metavar=25)
-    parser.add_argument(
-        "-pa", "--proxy-address", help="Proxy address",
-        type=str, metavar="192.168.1.1")
-    parser.add_argument(
-        "-pp", "--proxy-port", help="Proxy port", type=int, metavar=8080)
+        "-pp", "--proxy-port", help="Proxy port", type=int, metavar=8080
+    )
 
     """ Auto-booleans: adding these flags ENABLE themselves automatically
     ```python quickstart.py --use-firefox```
     """
     parser.add_argument(
-        "-uf", "--use-firefox", help="Use Firefox",
-        action="store_true", default=None)
+        "-uf", "--use-firefox", help="Use Firefox", action="store_true", default=None
+    )
     parser.add_argument(
-        "-hb", "--headless-browser", help="Headless browser",
-        action="store_true", default=None)
+        "-hb",
+        "--headless-browser",
+        help="Headless browser",
+        action="store_true",
+        default=None,
+    )
     parser.add_argument(
-        "-dil", "--disable-image-load", help="Disable image load",
-        action="store_true", default=None)
+        "-dil",
+        "--disable-image-load",
+        help="Disable image load",
+        action="store_true",
+        default=None,
+    )
     parser.add_argument(
-        "-bsa", "--bypass-suspicious-attempt",
-        help="Bypass suspicious attempt", action="store_true", default=None)
+        "-bsa",
+        "--bypass-suspicious-attempt",
+        help="Bypass suspicious attempt",
+        action="store_true",
+        default=None,
+    )
     parser.add_argument(
-        "-bwm", "--bypass-with-mobile", help="Bypass with mobile phone",
-        action="store_true", default=None)
+        "-bwm",
+        "--bypass-with-mobile",
+        help="Bypass with mobile phone",
+        action="store_true",
+        default=None,
+    )
     parser.add_argument(
-        "-sdb", "--split-db", help="Split sqlite-db as linkedinpy_{username}.db",
-        action="store_true", default=None)
+        "-sdb",
+        "--split-db",
+        help="Split sqlite-db as linkedinpy_{username}.db",
+        action="store_true",
+        default=None,
+    )
 
     """ Style below can convert strings into booleans:
     ```parser.add_argument("--is-debug",

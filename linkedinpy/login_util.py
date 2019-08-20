@@ -6,26 +6,23 @@ from selenium.webdriver.common.action_chains import ActionChains
 from socialcommons.time_util import sleep
 
 from .settings import Settings
-from .util import (
-    explicit_wait,
-    get_current_url,
-    update_activity,
-    web_address_navigator
-)
+from .util import explicit_wait, get_current_url, update_activity, web_address_navigator
 
 
-def login_user(browser,
-               username,
-               userid,
-               password,
-               logger,
-               logfolder,
-               switch_language=True,
-               bypass_suspicious_attempt=False,
-               bypass_with_mobile=False):
+def login_user(
+    browser,
+    username,
+    userid,
+    password,
+    logger,
+    logfolder,
+    switch_language=True,
+    bypass_suspicious_attempt=False,
+    bypass_with_mobile=False,
+):
     """Logins the user with the given username and password"""
-    assert username, 'Username not provided'
-    assert password, 'Password not provided'
+    assert username, "Username not provided"
+    assert password, "Password not provided"
 
     print(username, password)
     ig_homepage = "https://www.linkedin.com/login/"
@@ -35,12 +32,14 @@ def login_user(browser,
     input_username_XP = '//*[@id="username"]'
     input_username = browser.find_element_by_xpath(input_username_XP)
 
-    print('Entering username')
-    (ActionChains(browser)
-     .move_to_element(input_username)
-     .click()
-     .send_keys(username)
-     .perform())
+    print("Entering username")
+    (
+        ActionChains(browser)
+        .move_to_element(input_username)
+        .click()
+        .send_keys(username)
+        .perform()
+    )
 
     # update server calls for both 'click' and 'send_keys' actions
     for i in range(2):
@@ -52,12 +51,14 @@ def login_user(browser,
     if not isinstance(password, str):
         password = str(password)
 
-    print('Entering password')
-    (ActionChains(browser)
-     .move_to_element(input_password[0])
-     .click()
-     .send_keys(password)
-     .perform())
+    print("Entering password")
+    (
+        ActionChains(browser)
+        .move_to_element(input_password[0])
+        .click()
+        .send_keys(password)
+        .perform()
+    )
 
     # update server calls for both 'click' and 'send_keys' actions
     for i in range(2):
@@ -65,13 +66,10 @@ def login_user(browser,
 
     sleep(1)
 
-    print('Submitting login_button')
+    print("Submitting login_button")
     login_button = browser.find_element_by_xpath('//*[@type="submit"]')
 
-    (ActionChains(browser)
-     .move_to_element(login_button)
-     .click()
-     .perform())
+    (ActionChains(browser).move_to_element(login_button).click().perform())
 
     # update server calls
     update_activity(Settings)

@@ -12,6 +12,7 @@ from sys import platform
 
 class Settings:
     """ Globally accessible settings throughout whole project """
+
     def localize_path(*args):
         """ Join given locations as an OS path """
         if environmental_variables.get("HOME"):
@@ -23,16 +24,14 @@ class Settings:
     # locations
     log_location = localize_path("LinkedinPy", "logs")
     database_location = localize_path("LinkedinPy/db", "linkedinpy.db")
-    OS_ENV = ("windows" if platform == "win32"
-              else "osx" if platform == "darwin"
-              else "linux")
+    OS_ENV = (
+        "windows" if platform == "win32" else "osx" if platform == "darwin" else "linux"
+    )
 
     specific_chromedriver = "chromedriver_{}".format(OS_ENV)
-    chromedriver_location = localize_path(
-        "LinkedinPy", "assets", specific_chromedriver)
-    if (not chromedriver_location or not path_exists(chromedriver_location)):
-        chromedriver_location = localize_path(
-            "LinkedinPy", "assets", "chromedriver")
+    chromedriver_location = localize_path("LinkedinPy", "assets", specific_chromedriver)
+    if not chromedriver_location or not path_exists(chromedriver_location):
+        chromedriver_location = localize_path("LinkedinPy", "assets", "chromedriver")
 
     # minimum supported version of chromedriver
     chromedriver_min_version = 2.36
@@ -68,13 +67,11 @@ class Settings:
     use_firefox = None
     IS_RUNNING = False
 
-    WORKSPACE = {
-        "name": "LinkedinPy",
-        "path": environmental_variables.get("HOME")}
+    WORKSPACE = {"name": "LinkedinPy", "path": environmental_variables.get("HOME")}
 
     DATABASE_LOCATION = localize_path("LinkedinPy", "db", "linkedinpy.db")
 
-# class Storage:
+    # class Storage:
     """ Globally accessible standalone storage """
 
     # store realtime record activity data

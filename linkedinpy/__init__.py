@@ -1,4 +1,3 @@
-
 from .linkedinpy import LinkedinPy
 from .linkedinpy import smart_run
 from .settings import Settings

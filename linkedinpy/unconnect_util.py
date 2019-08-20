@@ -18,8 +18,8 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             cur = conn.cursor()
 
             cur.execute(
-                "SELECT * FROM connectRestriction WHERE profile_id=:var",
-                {"var": id})
+                "SELECT * FROM connectRestriction WHERE profile_id=:var", {"var": id}
+            )
             data = cur.fetchall()
 
         if data:
@@ -30,19 +30,18 @@ def dump_connect_restriction(profile_name, logger, logfolder):
             else:
                 current_data = {}
 
-            connect_data = {user_data[1]: user_data[2]
-                            for user_data in data or []}
+            connect_data = {user_data[1]: user_data[2] for user_data in data or []}
             current_data[profile_name] = connect_data
 
             # dump the fresh connect data to a local human readable JSON
-            with open(filename, 'w') as connectResFile:
+            with open(filename, "w") as connectResFile:
                 json.dump(current_data, connectResFile)
 
     except Exception as exc:
         logger.error(
             "Pow! Error occurred while dumping connect restriction data to a "
-            "local JSON:\n\t{}".format(
-                str(exc).encode("utf-8")))
+            "local JSON:\n\t{}".format(str(exc).encode("utf-8"))
+        )
 
     finally:
         if conn:
@@ -63,7 +62,8 @@ def connect_restriction(operation, username, limit, logger):
             cur.execute(
                 "SELECT * FROM connectRestriction WHERE profile_id=:id_var "
                 "AND username=:name_var",
-                {"id_var": id, "name_var": username})
+                {"id_var": id, "name_var": username},
+            )
             data = cur.fetchone()
             connect_data = dict(data) if data else None
 
@@ -72,11 +72,14 @@ def connect_restriction(operation, username, limit, logger):
                     cur.execute(
                         "INSERT INTO connectRestriction (profile_id, "
                         "username, times) VALUES (?, ?, ?)",
-                        (id, username, 1))
+                        (id, username, 1),
+                    )
                 else:
                     connect_data["times"] += 1
-                    sql = "UPDATE connectRestriction set times = ? WHERE " \
-                          "profile_id=? AND username = ?"
+                    sql = (
+                        "UPDATE connectRestriction set times = ? WHERE "
+                        "profile_id=? AND username = ?"
+                    )
                     cur.execute(sql, (connect_data["times"], id, username))
 
                 conn.commit()
@@ -89,16 +92,20 @@ def connect_restriction(operation, username, limit, logger):
                     return False
 
                 else:
-                    exceed_msg = "" if connect_data[
-                        "times"] == limit else "more than "
-                    logger.info("---> {} has already been connected {}{} times"
-                                .format(username, exceed_msg, str(limit)))
+                    exceed_msg = "" if connect_data["times"] == limit else "more than "
+                    logger.info(
+                        "---> {} has already been connected {}{} times".format(
+                            username, exceed_msg, str(limit)
+                        )
+                    )
                     return True
 
     except Exception as exc:
         logger.error(
             "Dap! Error occurred with connect Restriction:\n\t{}".format(
-                str(exc).encode("utf-8")))
+                str(exc).encode("utf-8")
+            )
+        )
 
     finally:
         if conn:

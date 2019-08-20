@@ -41,17 +41,13 @@ def get_database(Settings, make=False):
     logger = Settings.logger
     credentials = Settings.profile
 
-    id, name = credentials["id"], credentials['name']
+    id, name = credentials["id"], credentials["name"]
     address = validate_database_address(Settings)
 
     if not os.path.isfile(address) or make:
         create_database(address, logger, name)
 
-    id = get_profile(
-        Settings,
-        name,
-        address,
-        logger) if id is None or make else id
+    id = get_profile(Settings, name, address, logger) if id is None or make else id
 
     return address, id
 
@@ -63,17 +59,24 @@ def create_database(address, logger, name):
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
 
-            create_tables(cursor, ["profiles",
-                                   "recordActivity",
-                                   "connectRestriction",
-                                   "accountsProgress"])
+            create_tables(
+                cursor,
+                [
+                    "profiles",
+                    "recordActivity",
+                    "connectRestriction",
+                    "accountsProgress",
+                ],
+            )
 
             connection.commit()
 
     except Exception as exc:
         logger.warning(
-            "Wah! Error occurred while getting a DB for '{}':\n\t{}"
-            .format(name, str(exc).encode("utf-8")))
+            "Wah! Error occurred while getting a DB for '{}':\n\t{}".format(
+                name, str(exc).encode("utf-8")
+            )
+        )
 
     finally:
         if connection:
@@ -127,8 +130,10 @@ def get_profile(Settings, name, address, logger):
                 profile = select_profile_by_username(cursor, name)
     except Exception as exc:
         logger.warning(
-            "Heeh! Error occurred while getting a DB profile for '{}':\n\t{}"
-            .format(name, str(exc).encode("utf-8")))
+            "Heeh! Error occurred while getting a DB profile for '{}':\n\t{}".format(
+                name, str(exc).encode("utf-8")
+            )
+        )
     finally:
         if conn:
             conn.close()
